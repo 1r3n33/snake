@@ -22,22 +22,22 @@ struct Node
 
 #define NODE_BUFFER_CAPACITY 32 // must be of power of two
 
-struct Nodes
+struct Snake
 {
-    struct Node buffer[NODE_BUFFER_CAPACITY];
+    struct Node nodes[NODE_BUFFER_CAPACITY];
     uint8_t head;
     uint8_t tail;
-} nodes;
+} snake;
 
-struct Node *nodes_next_head()
+struct Node *snake_next_head()
 {
-    nodes.head = (nodes.head + 1) & 31;
-    return nodes.buffer + nodes.head;
+    snake.head = (snake.head + 1) & 31;
+    return snake.nodes + snake.head;
 }
-struct Node *nodes_next_tail()
+struct Node *snake_next_tail()
 {
-    nodes.tail = (nodes.tail + 1) & 31;
-    return nodes.buffer + nodes.tail;
+    snake.tail = (snake.tail + 1) & 31;
+    return snake.nodes + snake.tail;
 }
 
 void set_bkg(struct Node *node, uint8_t *tiles)
@@ -50,13 +50,13 @@ void set_bkg(struct Node *node, uint8_t *tiles)
 
 void update_nodes(const uint8_t dir) // the new dir
 {
-    struct Node *head = nodes.buffer + nodes.head;
-    struct Node *prev_tail = nodes.buffer + nodes.tail;
+    struct Node *head = snake.nodes + snake.head;
+    struct Node *prev_tail = snake.nodes + snake.tail;
 
     uint8_t empty[4] = {0, 0, 0, 0};
     set_bkg(prev_tail, empty);
 
-    struct Node *next_tail = nodes_next_tail();
+    struct Node *next_tail = snake_next_tail();
     if (next_tail->out == NODE_DIR_EAST)
     {
         uint8_t tiles[4] = {20, 22, 21, 23};
@@ -104,7 +104,7 @@ void update_nodes(const uint8_t dir) // the new dir
         head->out = NODE_DIR_NORTH;
 
         // new head
-        struct Node *new_node = nodes_next_head();
+        struct Node *new_node = snake_next_head();
         new_node->x = head->x;
         new_node->y = head->y - 2;
         new_node->in = NODE_DIR_NORTH;
@@ -140,7 +140,7 @@ void update_nodes(const uint8_t dir) // the new dir
         head->out = NODE_DIR_SOUTH;
 
         // new head
-        struct Node *new_node = nodes_next_head();
+        struct Node *new_node = snake_next_head();
         new_node->x = head->x;
         new_node->y = head->y + 2;
         new_node->in = NODE_DIR_SOUTH;
@@ -176,7 +176,7 @@ void update_nodes(const uint8_t dir) // the new dir
         head->out = NODE_DIR_WEST;
 
         // new head
-        struct Node *new_node = nodes_next_head();
+        struct Node *new_node = snake_next_head();
         new_node->x = head->x - 2;
         new_node->y = head->y;
         new_node->in = NODE_DIR_WEST;
@@ -211,7 +211,7 @@ void update_nodes(const uint8_t dir) // the new dir
         head->out = NODE_DIR_EAST;
 
         // new head
-        struct Node *new_node = nodes_next_head();
+        struct Node *new_node = snake_next_head();
         new_node->x = head->x + 2;
         new_node->y = head->y;
         new_node->in = NODE_DIR_EAST;
@@ -231,10 +231,10 @@ void init_gfx()
 
     // Setup initial snake
     {
-        nodes.tail = 0;
-        nodes.head = 5;
+        snake.tail = 0;
+        snake.head = 5;
 
-        struct Node *node = nodes.buffer + nodes.tail;
+        struct Node *node = snake.nodes + snake.tail;
         node->x = 2;
         node->y = 2;
         node->in = NODE_DIR_UNKNOWN;
@@ -281,13 +281,13 @@ void init_gfx()
     {
         memset(bkg, 0, 32 * 32);
 
-        struct Node *node = nodes.buffer + nodes.tail;
+        struct Node *node = snake.nodes + snake.tail;
 
         uint8_t horiz_tail[4] = {20, 22, 21, 23};
         set_bkg(node, horiz_tail);
 
         uint8_t horiz_body[4] = {28, 30, 29, 31};
-        while (++node < nodes.buffer + nodes.head)
+        while (++node < snake.nodes + snake.head)
         {
             set_bkg(node, horiz_body);
         }
