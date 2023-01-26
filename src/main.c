@@ -11,6 +11,8 @@ uint8_t bkg[32 * 32];
 #define NODE_DIR_EAST 3
 #define NODE_DIR_UNKNOWN 0xFF
 
+uint8_t opposite_direction[4] = {NODE_DIR_SOUTH, NODE_DIR_NORTH, NODE_DIR_EAST, NODE_DIR_WEST};
+
 struct Node
 {
     uint8_t x;     // x pos
@@ -29,12 +31,23 @@ struct Snake
     uint8_t tail;
 } snake;
 
-struct Node *snake_next_head()
+inline struct Node *snake_get_head()
+{
+    return snake.nodes + snake.head;
+}
+
+inline struct Node *snake_get_tail()
+{
+    return snake.nodes + snake.head;
+}
+
+inline struct Node *snake_advance_head()
 {
     snake.head = (snake.head + 1) & 31;
     return snake.nodes + snake.head;
 }
-struct Node *snake_next_tail()
+
+inline struct Node *snake_advance_tail()
 {
     snake.tail = (snake.tail + 1) & 31;
     return snake.nodes + snake.tail;
@@ -48,37 +61,50 @@ void set_bkg(struct Node *node, uint8_t *tiles)
     bkg[((node->y + 1) * 32) + (node->x + 1)] = *tiles;
 }
 
-void update_nodes(const uint8_t dir) // the new dir
+void snake_update(const uint8_t dir)
 {
-    struct Node *head = snake.nodes + snake.head;
-    struct Node *prev_tail = snake.nodes + snake.tail;
+    struct Node *const head = snake.nodes + snake.head;
+    struct Node *const prev_tail = snake.nodes + snake.tail;
 
-    uint8_t empty[4] = {0, 0, 0, 0};
-    set_bkg(prev_tail, empty);
-
-    struct Node *next_tail = snake_next_tail();
-    if (next_tail->out == NODE_DIR_EAST)
+    // Assign new direction.
+    if (dir != NODE_DIR_UNKNOWN && head->in != opposite_direction[dir])
     {
-        uint8_t tiles[4] = {20, 22, 21, 23};
-        set_bkg(next_tail, tiles);
+        head->out = dir;
     }
-    else if (next_tail->out == NODE_DIR_WEST)
+    else
     {
-        uint8_t tiles[4] = {12, 14, 13, 15};
-        set_bkg(next_tail, tiles);
-    }
-    else if (next_tail->out == NODE_DIR_NORTH)
-    {
-        uint8_t tiles[4] = {16, 18, 17, 19};
-        set_bkg(next_tail, tiles);
-    }
-    else if (next_tail->out == NODE_DIR_SOUTH)
-    {
-        uint8_t tiles[4] = {8, 10, 9, 11};
-        set_bkg(next_tail, tiles);
+        head->out = head->in;
     }
 
-    if (dir == NODE_DIR_NORTH)
+    if (head->in != NODE_DIR_UNKNOWN)
+    {
+        uint8_t empty[4] = {0, 0, 0, 0};
+        set_bkg(prev_tail, empty);
+
+        struct Node *next_tail = snake_advance_tail();
+        if (next_tail->out == NODE_DIR_EAST)
+        {
+            uint8_t tiles[4] = {20, 22, 21, 23};
+            set_bkg(next_tail, tiles);
+        }
+        else if (next_tail->out == NODE_DIR_WEST)
+        {
+            uint8_t tiles[4] = {12, 14, 13, 15};
+            set_bkg(next_tail, tiles);
+        }
+        else if (next_tail->out == NODE_DIR_NORTH)
+        {
+            uint8_t tiles[4] = {16, 18, 17, 19};
+            set_bkg(next_tail, tiles);
+        }
+        else if (next_tail->out == NODE_DIR_SOUTH)
+        {
+            uint8_t tiles[4] = {8, 10, 9, 11};
+            set_bkg(next_tail, tiles);
+        }
+    }
+
+    if (head->out == NODE_DIR_NORTH)
     {
         if (head->in == NODE_DIR_NORTH)
         {
@@ -101,10 +127,8 @@ void update_nodes(const uint8_t dir) // the new dir
             set_bkg(head, corner);
         }
 
-        head->out = NODE_DIR_NORTH;
-
         // new head
-        struct Node *new_node = snake_next_head();
+        struct Node *new_node = snake_advance_head();
         new_node->x = head->x;
         new_node->y = head->y - 2;
         new_node->in = NODE_DIR_NORTH;
@@ -114,7 +138,7 @@ void update_nodes(const uint8_t dir) // the new dir
         uint8_t tiles[4] = {8, 10, 9, 11};
         set_bkg(new_node, tiles);
     }
-    else if (dir == NODE_DIR_SOUTH)
+    else if (head->out == NODE_DIR_SOUTH)
     {
         if (head->in == NODE_DIR_NORTH)
         {
@@ -137,10 +161,8 @@ void update_nodes(const uint8_t dir) // the new dir
             set_bkg(head, corner);
         }
 
-        head->out = NODE_DIR_SOUTH;
-
         // new head
-        struct Node *new_node = snake_next_head();
+        struct Node *new_node = snake_advance_head();
         new_node->x = head->x;
         new_node->y = head->y + 2;
         new_node->in = NODE_DIR_SOUTH;
@@ -150,7 +172,7 @@ void update_nodes(const uint8_t dir) // the new dir
         uint8_t tiles[4] = {16, 18, 17, 19};
         set_bkg(new_node, tiles);
     }
-    else if (dir == NODE_DIR_WEST)
+    else if (head->out == NODE_DIR_WEST)
     {
         if (head->in == NODE_DIR_NORTH)
         {
@@ -173,10 +195,8 @@ void update_nodes(const uint8_t dir) // the new dir
             set_bkg(head, tiles);
         }
 
-        head->out = NODE_DIR_WEST;
-
         // new head
-        struct Node *new_node = snake_next_head();
+        struct Node *new_node = snake_advance_head();
         new_node->x = head->x - 2;
         new_node->y = head->y;
         new_node->in = NODE_DIR_WEST;
@@ -185,7 +205,7 @@ void update_nodes(const uint8_t dir) // the new dir
         uint8_t tiles[4] = {20, 22, 21, 23};
         set_bkg(new_node, tiles);
     }
-    else if (dir == NODE_DIR_EAST)
+    else if (head->out == NODE_DIR_EAST)
     {
         if (head->in == NODE_DIR_NORTH)
         {
@@ -208,10 +228,8 @@ void update_nodes(const uint8_t dir) // the new dir
             set_bkg(head, tiles);
         }
 
-        head->out = NODE_DIR_EAST;
-
         // new head
-        struct Node *new_node = snake_next_head();
+        struct Node *new_node = snake_advance_head();
         new_node->x = head->x + 2;
         new_node->y = head->y;
         new_node->in = NODE_DIR_EAST;
@@ -307,32 +325,43 @@ void main(void)
     init_gfx();
 
     int8_t frame = 0;
+    int8_t pressedOnce = 0;
 
     // Loop forever
     while (1)
     {
-
-        // Game main loop processing goes here
-        if (frame == 30) // every half sec
+        const uint8_t pressed = joypad();
+        if (pressedOnce)
         {
-            const uint8_t pressed = joypad();
-            if (pressed & J_UP)
+            if (frame == 15)
             {
-                update_nodes(NODE_DIR_NORTH);
+                frame = 0;
+                if (pressed & J_UP)
+                {
+                    snake_update(NODE_DIR_NORTH);
+                }
+                else if (pressed & J_DOWN)
+                {
+                    snake_update(NODE_DIR_SOUTH);
+                }
+                else if (pressed & J_LEFT)
+                {
+                    snake_update(NODE_DIR_WEST);
+                }
+                else if (pressed & J_RIGHT)
+                {
+                    snake_update(NODE_DIR_EAST);
+                }
+                else
+                {
+                    snake_update(NODE_DIR_UNKNOWN);
+                }
             }
-            else if (pressed & J_DOWN)
-            {
-                update_nodes(NODE_DIR_SOUTH);
-            }
-            else if (pressed & J_LEFT)
-            {
-                update_nodes(NODE_DIR_WEST);
-            }
-            else if (pressed & J_RIGHT)
-            {
-                update_nodes(NODE_DIR_EAST);
-            }
-            frame = 0;
+        }
+        else
+        {
+            pressedOnce = pressed & (J_UP | J_DOWN | J_LEFT | J_RIGHT);
+            frame = 14;
         }
 
         // Done processing, yield CPU and wait for start of next frame
