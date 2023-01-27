@@ -3,7 +3,9 @@
 #include <string.h>
 #include "../res/snake.h"
 
-uint8_t bkg[32 * 32];
+#define BKG_WIDTH 32
+#define BKG_HEIGHT 32
+uint8_t bkg[BKG_WIDTH * BKG_HEIGHT];
 
 #define NODE_DIR_NORTH 0
 #define NODE_DIR_SOUTH 1
@@ -53,12 +55,41 @@ inline struct Node *snake_advance_tail()
     return snake.nodes + snake.tail;
 }
 
+// set_bkg
+//
+// Apply tiles at the node location.
+// [0][1]
+// [2][3]
 void set_bkg(struct Node *node, uint8_t *tiles)
 {
+    /* Original code
     bkg[((node->y + 0) * 32) + (node->x + 0)] = *tiles++;
     bkg[((node->y + 0) * 32) + (node->x + 1)] = *tiles++;
     bkg[((node->y + 1) * 32) + (node->x + 0)] = *tiles++;
     bkg[((node->y + 1) * 32) + (node->x + 1)] = *tiles;
+    */
+
+    // Set base pointer
+    uint8_t *dst = bkg + (node->y * BKG_WIDTH) + node->x;
+
+    // [0][ ]
+    // [ ][ ]
+    *dst = *tiles++;
+    dst++;
+
+    // [ ][1]
+    // [ ][ ]
+    *dst = *tiles++;
+    dst += (BKG_WIDTH - 1);
+
+    // [ ][ ]
+    // [2][ ]
+    *dst = *tiles++;
+    dst++;
+
+    // [ ][ ]
+    // [ ][3]
+    *dst = *tiles;
 }
 
 void snake_update(const uint8_t dir)
