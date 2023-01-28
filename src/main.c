@@ -60,7 +60,7 @@ inline struct Node *snake_advance_tail()
 // Apply tiles at the node location.
 // [0][1]
 // [2][3]
-void set_bkg(struct Node *node, uint8_t *tiles)
+void set_bkg(const struct Node *const node, const uint8_t *tiles)
 {
     /* Original code
     bkg[((node->y + 0) * 32) + (node->x + 0)] = *tiles++;
@@ -92,182 +92,131 @@ void set_bkg(struct Node *node, uint8_t *tiles)
     *dst = *tiles;
 }
 
+const uint8_t snake_tiles_empty[4] = {0, 0, 0, 0};
+
+// Heads are expressed in direction
+//  __
+// (__ <- going W
+//
+const uint8_t snake_tiles_head_N[4] = {8, 10, 9, 11};
+const uint8_t snake_tiles_head_S[4] = {16, 18, 17, 19};
+const uint8_t snake_tiles_head_W[4] = {20, 22, 21, 23};
+const uint8_t snake_tiles_head_E[4] = {12, 14, 13, 15};
+
+// Tails are expressed in direction
+//  __
+// (__ <- going E
+//
+const uint8_t snake_tiles_tail_S[4] = {8, 10, 9, 11};
+const uint8_t snake_tiles_tail_N[4] = {16, 18, 17, 19};
+const uint8_t snake_tiles_tail_E[4] = {20, 22, 21, 23};
+const uint8_t snake_tiles_tail_W[4] = {12, 14, 13, 15};
+
+// Bodies
+//
+const uint8_t snake_tiles_body_V[4] = {24, 26, 25, 27};
+const uint8_t snake_tiles_body_H[4] = {28, 30, 29, 31};
+
+// Corners are expressed in direction
+//
+// | |_
+//  \__  <- This corner is both S->E and W->N
+// __
+// _ \.
+//  | |  <- This corner is both N->W and E-S
+//
+const uint8_t snake_tiles_corner_E_N[4] = {40, 42, 41, 43};
+const uint8_t snake_tiles_corner_W_N[4] = {44, 46, 45, 47};
+const uint8_t snake_tiles_corner_E_S[4] = {36, 38, 37, 39};
+const uint8_t snake_tiles_corner_W_S[4] = {32, 34, 33, 35};
+
+const uint8_t snake_tiles_corner_S_W[4] = {40, 42, 41, 43};
+const uint8_t snake_tiles_corner_S_E[4] = {44, 46, 45, 47};
+const uint8_t snake_tiles_corner_N_W[4] = {36, 38, 37, 39};
+const uint8_t snake_tiles_corner_N_E[4] = {32, 34, 33, 35};
+
+// N S W E
+// Indexed by the entering direction of the node
+const uint8_t *const snake_tiles_tail[4] = {snake_tiles_tail_N, snake_tiles_tail_S, snake_tiles_tail_W, snake_tiles_tail_E};
+const uint8_t *const snake_tiles_dir_north[4] = {snake_tiles_body_V, 0, snake_tiles_corner_W_N, snake_tiles_corner_E_N};
+const uint8_t *const snake_tiles_dir_south[4] = {0, snake_tiles_body_V, snake_tiles_corner_W_S, snake_tiles_corner_E_S};
+const uint8_t *const snake_tiles_dir_west[4] = {snake_tiles_corner_N_W, snake_tiles_corner_S_W, snake_tiles_body_H, 0};
+const uint8_t *const snake_tiles_dir_east[4] = {snake_tiles_corner_N_E, snake_tiles_corner_S_E, 0, snake_tiles_body_H};
+
 void snake_update(const uint8_t dir)
 {
-    struct Node *const head = snake.nodes + snake.head;
-    struct Node *const prev_tail = snake.nodes + snake.tail;
+    struct Node *const cur_head = snake.nodes + snake.head;
+    struct Node *const cur_tail = snake.nodes + snake.tail;
 
-    // Assign new direction.
-    if (dir != NODE_DIR_UNKNOWN && head->in != opposite_direction[dir])
+    // Assign new direction
+    if (dir != NODE_DIR_UNKNOWN && cur_head->in != opposite_direction[dir])
     {
-        head->out = dir;
+        cur_head->out = dir;
     }
     else
     {
-        head->out = head->in;
+        cur_head->out = cur_head->in;
     }
 
-    if (head->in != NODE_DIR_UNKNOWN)
+    // Update tail tiles
+    if (cur_head->in != NODE_DIR_UNKNOWN)
     {
-        uint8_t empty[4] = {0, 0, 0, 0};
-        set_bkg(prev_tail, empty);
+        // Clear the previous tail tile
+        set_bkg(cur_tail, snake_tiles_empty);
 
-        struct Node *next_tail = snake_advance_tail();
-        if (next_tail->out == NODE_DIR_EAST)
-        {
-            uint8_t tiles[4] = {20, 22, 21, 23};
-            set_bkg(next_tail, tiles);
-        }
-        else if (next_tail->out == NODE_DIR_WEST)
-        {
-            uint8_t tiles[4] = {12, 14, 13, 15};
-            set_bkg(next_tail, tiles);
-        }
-        else if (next_tail->out == NODE_DIR_NORTH)
-        {
-            uint8_t tiles[4] = {16, 18, 17, 19};
-            set_bkg(next_tail, tiles);
-        }
-        else if (next_tail->out == NODE_DIR_SOUTH)
-        {
-            uint8_t tiles[4] = {8, 10, 9, 11};
-            set_bkg(next_tail, tiles);
-        }
+        // Set the new tail tile
+        struct Node *new_tail = snake_advance_tail();
+        set_bkg(new_tail, snake_tiles_tail[new_tail->out]);
     }
 
-    if (head->out == NODE_DIR_NORTH)
+    // Update head tiles
+    if (cur_head->out == NODE_DIR_NORTH)
     {
-        if (head->in == NODE_DIR_NORTH)
-        {
-            uint8_t vert_body[4] = {24, 26, 25, 27};
-            set_bkg(head, vert_body);
-        }
-        else if (head->in == NODE_DIR_SOUTH)
-        {
-            uint8_t vert_body[4] = {24, 26, 25, 27};
-            set_bkg(head, vert_body);
-        }
-        else if (head->in == NODE_DIR_WEST)
-        {
-            uint8_t corner[4] = {44, 46, 45, 47};
-            set_bkg(head, corner);
-        }
-        else if (head->in == NODE_DIR_EAST)
-        {
-            uint8_t corner[4] = {40, 42, 41, 43};
-            set_bkg(head, corner);
-        }
+        set_bkg(cur_head, snake_tiles_dir_north[cur_head->in]);
 
-        // new head
-        struct Node *new_node = snake_advance_head();
-        new_node->x = head->x;
-        new_node->y = head->y - 2;
-        new_node->in = NODE_DIR_NORTH;
-        new_node->out = NODE_DIR_UNKNOWN;
-        new_node->frame = 0;
-
-        uint8_t tiles[4] = {8, 10, 9, 11};
-        set_bkg(new_node, tiles);
+        struct Node *new_head = snake_advance_head();
+        new_head->x = cur_head->x;
+        new_head->y = cur_head->y - 2;
+        new_head->in = NODE_DIR_NORTH;
+        new_head->out = NODE_DIR_UNKNOWN;
+        new_head->frame = 0;
+        set_bkg(new_head, snake_tiles_head_N);
     }
-    else if (head->out == NODE_DIR_SOUTH)
+    else if (cur_head->out == NODE_DIR_SOUTH)
     {
-        if (head->in == NODE_DIR_NORTH)
-        {
-            uint8_t vert_body[4] = {24, 26, 25, 27};
-            set_bkg(head, vert_body);
-        }
-        else if (head->in == NODE_DIR_SOUTH)
-        {
-            uint8_t vert_body[4] = {24, 26, 25, 27};
-            set_bkg(head, vert_body);
-        }
-        else if (head->in == NODE_DIR_WEST)
-        {
-            uint8_t corner[4] = {32, 34, 33, 35};
-            set_bkg(head, corner);
-        }
-        else if (head->in == NODE_DIR_EAST)
-        {
-            uint8_t corner[4] = {36, 38, 37, 39};
-            set_bkg(head, corner);
-        }
+        set_bkg(cur_head, snake_tiles_dir_south[cur_head->in]);
 
-        // new head
-        struct Node *new_node = snake_advance_head();
-        new_node->x = head->x;
-        new_node->y = head->y + 2;
-        new_node->in = NODE_DIR_SOUTH;
-        new_node->out = NODE_DIR_UNKNOWN;
-        new_node->frame = 0;
-
-        uint8_t tiles[4] = {16, 18, 17, 19};
-        set_bkg(new_node, tiles);
+        struct Node *new_head = snake_advance_head();
+        new_head->x = cur_head->x;
+        new_head->y = cur_head->y + 2;
+        new_head->in = NODE_DIR_SOUTH;
+        new_head->out = NODE_DIR_UNKNOWN;
+        new_head->frame = 0;
+        set_bkg(new_head, snake_tiles_head_S);
     }
-    else if (head->out == NODE_DIR_WEST)
+    else if (cur_head->out == NODE_DIR_WEST)
     {
-        if (head->in == NODE_DIR_NORTH)
-        {
-            uint8_t corner[4] = {36, 38, 37, 39};
-            set_bkg(head, corner);
-        }
-        else if (head->in == NODE_DIR_SOUTH)
-        {
-            uint8_t tiles[4] = {40, 42, 41, 43};
-            set_bkg(head, tiles);
-        }
-        else if (head->in == NODE_DIR_WEST)
-        {
-            uint8_t tiles[4] = {28, 30, 29, 31};
-            set_bkg(head, tiles);
-        }
-        else if (head->in == NODE_DIR_EAST)
-        {
-            uint8_t tiles[4] = {28, 30, 29, 31};
-            set_bkg(head, tiles);
-        }
+        set_bkg(cur_head, snake_tiles_dir_west[cur_head->in]);
 
-        // new head
-        struct Node *new_node = snake_advance_head();
-        new_node->x = head->x - 2;
-        new_node->y = head->y;
-        new_node->in = NODE_DIR_WEST;
-        new_node->out = NODE_DIR_UNKNOWN;
-        new_node->frame = 0;
-        uint8_t tiles[4] = {20, 22, 21, 23};
-        set_bkg(new_node, tiles);
+        struct Node *new_head = snake_advance_head();
+        new_head->x = cur_head->x - 2;
+        new_head->y = cur_head->y;
+        new_head->in = NODE_DIR_WEST;
+        new_head->out = NODE_DIR_UNKNOWN;
+        new_head->frame = 0;
+        set_bkg(new_head, snake_tiles_head_W);
     }
-    else if (head->out == NODE_DIR_EAST)
+    else if (cur_head->out == NODE_DIR_EAST)
     {
-        if (head->in == NODE_DIR_NORTH)
-        {
-            uint8_t corner[4] = {32, 34, 33, 35};
-            set_bkg(head, corner);
-        }
-        else if (head->in == NODE_DIR_SOUTH)
-        {
-            uint8_t tiles[4] = {44, 46, 45, 47};
-            set_bkg(head, tiles);
-        }
-        else if (head->in == NODE_DIR_WEST)
-        {
-            uint8_t tiles[4] = {28, 30, 29, 31};
-            set_bkg(head, tiles);
-        }
-        else if (head->in == NODE_DIR_EAST)
-        {
-            uint8_t tiles[4] = {28, 30, 29, 31};
-            set_bkg(head, tiles);
-        }
+        set_bkg(cur_head, snake_tiles_dir_east[cur_head->in]);
 
-        // new head
-        struct Node *new_node = snake_advance_head();
-        new_node->x = head->x + 2;
-        new_node->y = head->y;
-        new_node->in = NODE_DIR_EAST;
-        new_node->out = NODE_DIR_UNKNOWN;
-        new_node->frame = 0;
-        uint8_t tiles[4] = {12, 14, 13, 15};
-        set_bkg(new_node, tiles);
+        struct Node *new_head = snake_advance_head();
+        new_head->x = cur_head->x + 2;
+        new_head->y = cur_head->y;
+        new_head->in = NODE_DIR_EAST;
+        new_head->out = NODE_DIR_UNKNOWN;
+        new_head->frame = 0;
+        set_bkg(new_head, snake_tiles_head_E);
     }
 
     set_bkg_tiles(0, 0, 32u, 32u, bkg);
@@ -332,17 +281,14 @@ void init_gfx()
 
         struct Node *node = snake.nodes + snake.tail;
 
-        uint8_t horiz_tail[4] = {20, 22, 21, 23};
-        set_bkg(node, horiz_tail);
+        set_bkg(node, snake_tiles_tail_E);
 
-        uint8_t horiz_body[4] = {28, 30, 29, 31};
         while (++node < snake.nodes + snake.head)
         {
-            set_bkg(node, horiz_body);
+            set_bkg(node, snake_tiles_body_H);
         }
 
-        uint8_t horiz_head[4] = {12, 14, 13, 15};
-        set_bkg(node, horiz_head);
+        set_bkg(node, snake_tiles_head_E);
     }
 
     set_bkg_tiles(0, 0, 32u, 32u, bkg);
