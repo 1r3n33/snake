@@ -1,6 +1,6 @@
 /*
 
- SNAKE.H
+ SNAKE_TILES.H
 
  Include File.
 
@@ -8,9 +8,9 @@
   Form                 : All tiles as one unit.
   Format               : Gameboy 4 color.
   Compression          : None.
-  Counter              : None.
+  Counter              : Tile-count as Constant.
   Tile size            : 8 x 8
-  Tiles                : 0 to 64
+  Tiles                : 0 to 23
 
   Palette colors       : None.
   SGB Palette          : None.
@@ -22,14 +22,15 @@
 
 */
 
-#ifndef __snake_h_INCLUDE
-#define __snake_h_INCLUDE
+#ifndef __snake_tiles_h_INCLUDE
+#define __snake_tiles_h_INCLUDE
 
 /* Bank of tiles. */
-#define gfx_snakeBank 0
+#define gfx_snake_tilesBank 0
 /* Start of tile array. */
-extern const unsigned char gfx_snake[];
+extern const unsigned char gfx_snake_tiles[];
+#define gfx_snake_tilesLen 24
 
 #endif
 
-/* End of SNAKE.H */
+/* End of SNAKE_TILES.H */

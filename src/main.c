@@ -1,7 +1,7 @@
 #include <gb/gb.h>
 #include <stdint.h>
 #include <string.h>
-#include "../res/snake.h"
+#include "../res/snake_tiles.h"
 
 #define BKG_WIDTH 32
 #define BKG_HEIGHT 32
@@ -98,24 +98,24 @@ const uint8_t snake_tiles_empty[4] = {0, 0, 0, 0};
 //  __
 // (__ <- going W
 //
-const uint8_t snake_tiles_head_N[4] = {8, 10, 9, 11};
-const uint8_t snake_tiles_head_S[4] = {16, 18, 17, 19};
-const uint8_t snake_tiles_head_W[4] = {20, 22, 21, 23};
-const uint8_t snake_tiles_head_E[4] = {12, 14, 13, 15};
+const uint8_t snake_tiles_head_N[4] = {4, 6, 8, 9};
+const uint8_t snake_tiles_head_S[4] = {8, 9, 5, 7};
+const uint8_t snake_tiles_head_W[4] = {4, 10, 5, 11};
+const uint8_t snake_tiles_head_E[4] = {10, 6, 11, 7};
 
 // Tails are expressed in direction
 //  __
 // (__ <- going E
 //
-const uint8_t snake_tiles_tail_S[4] = {8, 10, 9, 11};
-const uint8_t snake_tiles_tail_N[4] = {16, 18, 17, 19};
-const uint8_t snake_tiles_tail_E[4] = {20, 22, 21, 23};
-const uint8_t snake_tiles_tail_W[4] = {12, 14, 13, 15};
+const uint8_t snake_tiles_tail_S[4] = {4, 6, 8, 9};
+const uint8_t snake_tiles_tail_N[4] = {8, 9, 5, 7};
+const uint8_t snake_tiles_tail_E[4] = {4, 10, 5, 11};
+const uint8_t snake_tiles_tail_W[4] = {10, 6, 11, 7};
 
 // Bodies
 //
-const uint8_t snake_tiles_body_V[4] = {24, 26, 25, 27};
-const uint8_t snake_tiles_body_H[4] = {28, 30, 29, 31};
+const uint8_t snake_tiles_body_V[4] = {8, 9, 8, 9};
+const uint8_t snake_tiles_body_H[4] = {10, 10, 11, 11};
 
 // Corners are expressed in direction
 //
@@ -125,15 +125,15 @@ const uint8_t snake_tiles_body_H[4] = {28, 30, 29, 31};
 // _ \.
 //  | |  <- This corner is both N->W and E-S
 //
-const uint8_t snake_tiles_corner_E_N[4] = {40, 42, 41, 43};
-const uint8_t snake_tiles_corner_W_N[4] = {44, 46, 45, 47};
-const uint8_t snake_tiles_corner_E_S[4] = {36, 38, 37, 39};
-const uint8_t snake_tiles_corner_W_S[4] = {32, 34, 33, 35};
+const uint8_t snake_tiles_corner_E_N[4] = {2, 18, 23, 19};
+const uint8_t snake_tiles_corner_W_N[4] = {16, 2, 17, 21};
+const uint8_t snake_tiles_corner_E_S[4] = {22, 14, 2, 15};
+const uint8_t snake_tiles_corner_W_S[4] = {12, 20, 13, 2};
 
-const uint8_t snake_tiles_corner_S_W[4] = {40, 42, 41, 43};
-const uint8_t snake_tiles_corner_S_E[4] = {44, 46, 45, 47};
-const uint8_t snake_tiles_corner_N_W[4] = {36, 38, 37, 39};
-const uint8_t snake_tiles_corner_N_E[4] = {32, 34, 33, 35};
+const uint8_t snake_tiles_corner_S_W[4] = {2, 18, 23, 19};
+const uint8_t snake_tiles_corner_S_E[4] = {16, 2, 17, 21};
+const uint8_t snake_tiles_corner_N_W[4] = {22, 14, 2, 15};
+const uint8_t snake_tiles_corner_N_E[4] = {12, 20, 13, 2};
 
 // N S W E
 // Indexed by the entering direction of the node
@@ -225,7 +225,7 @@ void snake_update(const uint8_t dir)
 void init_gfx()
 {
     // Load Background tiles and then map
-    set_bkg_data(0, 64, gfx_snake);
+    set_bkg_data(0, gfx_snake_tilesLen, gfx_snake_tiles);
 
     // Setup initial snake
     {
