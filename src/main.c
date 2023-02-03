@@ -24,35 +24,33 @@ struct Node
     const uint8_t *tiles; // tile indices
 };
 
-#define NODE_BUFFER_CAPACITY 32 // must be of power of two
+#define NODE_BUFFER_CAPACITY 16 // must be of power of two
 
 struct Snake
 {
     struct Node nodes[NODE_BUFFER_CAPACITY];
-    uint8_t head;
-    uint8_t tail;
+    struct Node *head;
+    struct Node *tail;
 } snake;
-
-inline struct Node *snake_get_head()
-{
-    return snake.nodes + snake.head;
-}
-
-inline struct Node *snake_get_tail()
-{
-    return snake.nodes + snake.head;
-}
 
 inline struct Node *snake_advance_head()
 {
-    snake.head = (snake.head + 1) & 31;
-    return snake.nodes + snake.head;
+    snake.head++;
+    if (snake.head >= (snake.nodes + NODE_BUFFER_CAPACITY))
+    {
+        snake.head = snake.nodes;
+    }
+    return snake.head;
 }
 
 inline struct Node *snake_advance_tail()
 {
-    snake.tail = (snake.tail + 1) & 31;
-    return snake.nodes + snake.tail;
+    snake.tail++;
+    if (snake.tail >= (snake.nodes + NODE_BUFFER_CAPACITY))
+    {
+        snake.tail = snake.nodes;
+    }
+    return snake.tail;
 }
 
 // set_bkg
@@ -147,8 +145,8 @@ const uint8_t *const snake_tiles_dir_east[4] = {snake_tiles_corner_N_E, snake_ti
 
 void snake_update(const uint8_t dir)
 {
-    struct Node *const cur_head = snake.nodes + snake.head;
-    struct Node *const cur_tail = snake.nodes + snake.tail;
+    struct Node *const cur_head = snake.head;
+    struct Node *const cur_tail = snake.tail;
 
     // Assign new direction
     if (dir != NODE_DIR_UNKNOWN && cur_head->in != opposite_direction[dir])
@@ -232,8 +230,8 @@ void snake_update(const uint8_t dir)
 
 void snake_tick()
 {
-    bkg_apply_node(snake.nodes + snake.tail);
-    bkg_apply_node(snake.nodes + snake.head);
+    bkg_apply_node(snake.tail);
+    bkg_apply_node(snake.head);
 
     set_bkg_tiles(0, 0, 32u, 32u, bkg);
 }
@@ -246,12 +244,12 @@ void init_gfx()
     memset(bkg, 0, 32 * 32);
 
     // Setup initial snake
-    snake.tail = 0;
-    snake.head = 6;
+    snake.tail = snake.nodes;
+    snake.head = snake.nodes + 6;
 
     int x_pos = 2;
 
-    struct Node *node = snake.nodes + snake.tail;
+    struct Node *node = snake.tail;
     node->x = x_pos;
     node->y = 2;
     node->in = NODE_DIR_UNKNOWN;
@@ -259,7 +257,7 @@ void init_gfx()
     node->tiles = snake_tiles_tail_E;
     bkg_apply_node(node);
 
-    for (uint8_t i = 1; i < snake.head; i++)
+    while (node < snake.head - 1)
     {
         node++;
         x_pos += 2;
