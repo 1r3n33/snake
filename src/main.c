@@ -17,11 +17,11 @@ uint8_t opposite_direction[4] = {NODE_DIR_SOUTH, NODE_DIR_NORTH, NODE_DIR_EAST, 
 
 struct Node
 {
-    uint8_t x;     // x pos
-    uint8_t y;     // y pos
-    uint8_t in;    // the enter direction, north, south, east, west
-    uint8_t out;   // the exit direction, north, south, east, west
-    uint8_t frame; // frame id for animation
+    uint8_t x;            // x pos
+    uint8_t y;            // y pos
+    uint8_t in;           // the enter direction, north, south, east, west
+    uint8_t out;          // the exit direction, north, south, east, west
+    const uint8_t *tiles; // tile indices
 };
 
 #define NODE_BUFFER_CAPACITY 32 // must be of power of two
@@ -60,7 +60,7 @@ inline struct Node *snake_advance_tail()
 // Apply tiles at the node location.
 // [0][1]
 // [2][3]
-void set_bkg(const struct Node *const node, const uint8_t *tiles)
+void bkg_apply_node(struct Node *const node)
 {
     /* Original code
     bkg[((node->y + 0) * 32) + (node->x + 0)] = *tiles++;
@@ -74,48 +74,50 @@ void set_bkg(const struct Node *const node, const uint8_t *tiles)
 
     // [0][ ]
     // [ ][ ]
-    *dst = *tiles++;
+    *dst = *node->tiles++;
     dst++;
 
     // [ ][1]
     // [ ][ ]
-    *dst = *tiles++;
+    *dst = *node->tiles++;
     dst += (BKG_WIDTH - 1);
 
     // [ ][ ]
     // [2][ ]
-    *dst = *tiles++;
+    *dst = *node->tiles++;
     dst++;
 
     // [ ][ ]
     // [ ][3]
-    *dst = *tiles;
+    *dst = *node->tiles++;
 }
 
 const uint8_t snake_tiles_empty[4] = {0, 0, 0, 0};
+
+#define FRAME_COUNT 2
 
 // Heads are expressed in direction
 //  __
 // (__ <- going W
 //
-const uint8_t snake_tiles_head_N[4] = {4, 6, 8, 9};
-const uint8_t snake_tiles_head_S[4] = {8, 9, 5, 7};
-const uint8_t snake_tiles_head_W[4] = {4, 10, 5, 11};
-const uint8_t snake_tiles_head_E[4] = {10, 6, 11, 7};
+const uint8_t snake_tiles_head_N[FRAME_COUNT * 4] = {0, 0, 4, 6, 4, 6, 8, 9};
+const uint8_t snake_tiles_head_S[FRAME_COUNT * 4] = {5, 7, 0, 0, 8, 9, 5, 7};
+const uint8_t snake_tiles_head_W[FRAME_COUNT * 4] = {0, 4, 0, 5, 4, 10, 5, 11};
+const uint8_t snake_tiles_head_E[FRAME_COUNT * 4] = {6, 0, 7, 0, 10, 6, 11, 7};
 
 // Tails are expressed in direction
 //  __
 // (__ <- going E
 //
-const uint8_t snake_tiles_tail_S[4] = {4, 6, 8, 9};
-const uint8_t snake_tiles_tail_N[4] = {8, 9, 5, 7};
-const uint8_t snake_tiles_tail_E[4] = {4, 10, 5, 11};
-const uint8_t snake_tiles_tail_W[4] = {10, 6, 11, 7};
+const uint8_t snake_tiles_tail_S[FRAME_COUNT * 4] = {4, 6, 8, 9, 0, 0, 4, 6};
+const uint8_t snake_tiles_tail_N[FRAME_COUNT * 4] = {8, 9, 5, 7, 5, 7, 0, 0};
+const uint8_t snake_tiles_tail_E[FRAME_COUNT * 4] = {4, 10, 5, 11, 0, 4, 0, 5};
+const uint8_t snake_tiles_tail_W[FRAME_COUNT * 4] = {10, 6, 11, 7, 6, 0, 7, 0};
 
 // Bodies
 //
-const uint8_t snake_tiles_body_V[4] = {8, 9, 8, 9};
-const uint8_t snake_tiles_body_H[4] = {10, 10, 11, 11};
+const uint8_t snake_tiles_body_V[FRAME_COUNT * 4] = {8, 9, 8, 9, 8, 9, 8, 9};
+const uint8_t snake_tiles_body_H[FRAME_COUNT * 4] = {10, 10, 11, 11, 10, 10, 11, 11};
 
 // Corners are expressed in direction
 //
@@ -125,15 +127,15 @@ const uint8_t snake_tiles_body_H[4] = {10, 10, 11, 11};
 // _ \.
 //  | |  <- This corner is both N->W and E-S
 //
-const uint8_t snake_tiles_corner_E_N[4] = {2, 18, 23, 19};
-const uint8_t snake_tiles_corner_W_N[4] = {16, 2, 17, 21};
-const uint8_t snake_tiles_corner_E_S[4] = {22, 14, 2, 15};
-const uint8_t snake_tiles_corner_W_S[4] = {12, 20, 13, 2};
+const uint8_t snake_tiles_corner_E_N[FRAME_COUNT * 4] = {2, 18, 23, 19, 2, 18, 23, 19};
+const uint8_t snake_tiles_corner_W_N[FRAME_COUNT * 4] = {16, 2, 17, 21, 16, 2, 17, 21};
+const uint8_t snake_tiles_corner_E_S[FRAME_COUNT * 4] = {22, 14, 2, 15, 22, 14, 2, 15};
+const uint8_t snake_tiles_corner_W_S[FRAME_COUNT * 4] = {12, 20, 13, 2, 12, 20, 13, 2};
 
-const uint8_t snake_tiles_corner_S_W[4] = {2, 18, 23, 19};
-const uint8_t snake_tiles_corner_S_E[4] = {16, 2, 17, 21};
-const uint8_t snake_tiles_corner_N_W[4] = {22, 14, 2, 15};
-const uint8_t snake_tiles_corner_N_E[4] = {12, 20, 13, 2};
+const uint8_t snake_tiles_corner_S_W[FRAME_COUNT * 4] = {2, 18, 23, 19, 2, 18, 23, 19};
+const uint8_t snake_tiles_corner_S_E[FRAME_COUNT * 4] = {16, 2, 17, 21, 16, 2, 17, 21};
+const uint8_t snake_tiles_corner_N_W[FRAME_COUNT * 4] = {22, 14, 2, 15, 22, 14, 2, 15};
+const uint8_t snake_tiles_corner_N_E[FRAME_COUNT * 4] = {12, 20, 13, 2, 12, 20, 13, 2};
 
 // N S W E
 // Indexed by the entering direction of the node
@@ -162,62 +164,76 @@ void snake_update(const uint8_t dir)
     if (cur_head->in != NODE_DIR_UNKNOWN)
     {
         // Clear the previous tail tile
-        set_bkg(cur_tail, snake_tiles_empty);
+        cur_tail->tiles = snake_tiles_empty;
+        bkg_apply_node(cur_tail);
 
         // Set the new tail tile
         struct Node *new_tail = snake_advance_tail();
-        set_bkg(new_tail, snake_tiles_tail[new_tail->out]);
+        new_tail->tiles = snake_tiles_tail[new_tail->out];
+        bkg_apply_node(new_tail);
     }
 
     // Update head tiles
     if (cur_head->out == NODE_DIR_NORTH)
     {
-        set_bkg(cur_head, snake_tiles_dir_north[cur_head->in]);
+        cur_head->tiles = snake_tiles_dir_north[cur_head->in];
+        bkg_apply_node(cur_head);
 
         struct Node *new_head = snake_advance_head();
         new_head->x = cur_head->x;
         new_head->y = cur_head->y - 2;
         new_head->in = NODE_DIR_NORTH;
         new_head->out = NODE_DIR_UNKNOWN;
-        new_head->frame = 0;
-        set_bkg(new_head, snake_tiles_head_N);
+        new_head->tiles = snake_tiles_head_N;
+        bkg_apply_node(new_head);
     }
     else if (cur_head->out == NODE_DIR_SOUTH)
     {
-        set_bkg(cur_head, snake_tiles_dir_south[cur_head->in]);
+        cur_head->tiles = snake_tiles_dir_south[cur_head->in];
+        bkg_apply_node(cur_head);
 
         struct Node *new_head = snake_advance_head();
         new_head->x = cur_head->x;
         new_head->y = cur_head->y + 2;
         new_head->in = NODE_DIR_SOUTH;
         new_head->out = NODE_DIR_UNKNOWN;
-        new_head->frame = 0;
-        set_bkg(new_head, snake_tiles_head_S);
+        new_head->tiles = snake_tiles_head_S;
+        bkg_apply_node(new_head);
     }
     else if (cur_head->out == NODE_DIR_WEST)
     {
-        set_bkg(cur_head, snake_tiles_dir_west[cur_head->in]);
+        cur_head->tiles = snake_tiles_dir_west[cur_head->in];
+        bkg_apply_node(cur_head);
 
         struct Node *new_head = snake_advance_head();
         new_head->x = cur_head->x - 2;
         new_head->y = cur_head->y;
         new_head->in = NODE_DIR_WEST;
         new_head->out = NODE_DIR_UNKNOWN;
-        new_head->frame = 0;
-        set_bkg(new_head, snake_tiles_head_W);
+        new_head->tiles = snake_tiles_head_W;
+        bkg_apply_node(new_head);
     }
     else if (cur_head->out == NODE_DIR_EAST)
     {
-        set_bkg(cur_head, snake_tiles_dir_east[cur_head->in]);
+        cur_head->tiles = snake_tiles_dir_east[cur_head->in];
+        bkg_apply_node(cur_head);
 
         struct Node *new_head = snake_advance_head();
         new_head->x = cur_head->x + 2;
         new_head->y = cur_head->y;
         new_head->in = NODE_DIR_EAST;
         new_head->out = NODE_DIR_UNKNOWN;
-        new_head->frame = 0;
-        set_bkg(new_head, snake_tiles_head_E);
+        new_head->tiles = snake_tiles_head_E;
+        bkg_apply_node(new_head);
     }
+
+    set_bkg_tiles(0, 0, 32u, 32u, bkg);
+}
+
+void snake_tick()
+{
+    bkg_apply_node(snake.nodes + snake.tail);
+    bkg_apply_node(snake.nodes + snake.head);
 
     set_bkg_tiles(0, 0, 32u, 32u, bkg);
 }
@@ -227,69 +243,44 @@ void init_gfx()
     // Load Background tiles and then map
     set_bkg_data(0, gfx_snake_tilesLen, gfx_snake_tiles);
 
+    memset(bkg, 0, 32 * 32);
+
     // Setup initial snake
+    snake.tail = 0;
+    snake.head = 6;
+
+    int x_pos = 2;
+
+    struct Node *node = snake.nodes + snake.tail;
+    node->x = x_pos;
+    node->y = 2;
+    node->in = NODE_DIR_UNKNOWN;
+    node->out = NODE_DIR_EAST;
+    node->tiles = snake_tiles_tail_E;
+    bkg_apply_node(node);
+
+    for (uint8_t i = 1; i < snake.head; i++)
     {
-        snake.tail = 0;
-        snake.head = 5;
-
-        struct Node *node = snake.nodes + snake.tail;
-        node->x = 2;
-        node->y = 2;
-        node->in = NODE_DIR_UNKNOWN;
-        node->out = NODE_DIR_EAST;
-        node->frame = 0;
-
         node++;
-        node->x = 4;
+        x_pos += 2;
+
+        node->x = x_pos;
         node->y = 2;
         node->in = NODE_DIR_EAST;
         node->out = NODE_DIR_EAST;
-        node->frame = 0;
-
-        node++;
-        node->x = 6;
-        node->y = 2;
-        node->in = NODE_DIR_EAST;
-        node->out = NODE_DIR_EAST;
-        node->frame = 0;
-
-        node++;
-        node->x = 8;
-        node->y = 2;
-        node->in = NODE_DIR_EAST;
-        node->out = NODE_DIR_EAST;
-        node->frame = 0;
-
-        node++;
-        node->x = 10;
-        node->y = 2;
-        node->in = NODE_DIR_EAST;
-        node->out = NODE_DIR_EAST;
-        node->frame = 0;
-
-        node++;
-        node->x = 12;
-        node->y = 2;
-        node->in = NODE_DIR_EAST;
-        node->out = NODE_DIR_UNKNOWN;
-        node->frame = 0;
+        node->tiles = snake_tiles_body_H;
+        bkg_apply_node(node);
     }
 
-    // Fill bkg
-    {
-        memset(bkg, 0, 32 * 32);
+    node++;
+    x_pos += 2;
 
-        struct Node *node = snake.nodes + snake.tail;
-
-        set_bkg(node, snake_tiles_tail_E);
-
-        while (++node < snake.nodes + snake.head)
-        {
-            set_bkg(node, snake_tiles_body_H);
-        }
-
-        set_bkg(node, snake_tiles_head_E);
-    }
+    node->x = x_pos;
+    node->y = 2;
+    node->in = NODE_DIR_EAST;
+    node->out = NODE_DIR_UNKNOWN;
+    node->tiles = snake_tiles_head_E;
+    bkg_apply_node(node);
 
     set_bkg_tiles(0, 0, 32u, 32u, bkg);
 
@@ -310,7 +301,11 @@ void main(void)
         const uint8_t pressed = joypad();
         if (pressedOnce)
         {
-            if (frame == 15)
+            if (frame == 8)
+            {
+                snake_tick();
+            }
+            else if (frame == 16)
             {
                 frame = 0;
                 if (pressed & J_UP)
@@ -338,7 +333,7 @@ void main(void)
         else
         {
             pressedOnce = pressed & (J_UP | J_DOWN | J_LEFT | J_RIGHT);
-            frame = 14;
+            frame = 7;
         }
 
         // Done processing, yield CPU and wait for start of next frame
