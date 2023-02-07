@@ -19,6 +19,8 @@ struct Node
 {
     uint8_t x;            // x pos
     uint8_t y;            // y pos
+    uint8_t offset_x;     // center x offset
+    uint8_t offset_y;     // center y offset
     uint8_t in;           // the enter direction, north, south, east, west
     uint8_t out;          // the exit direction, north, south, east, west
     const uint8_t *tiles; // tile indices
@@ -32,6 +34,34 @@ struct Snake
     struct Node *head;
     struct Node *tail;
 } snake;
+
+// This is used to refresh tile indices in VRAM.
+struct DirtyTile
+{
+    uint8_t *vram;
+    const uint8_t *indices;
+};
+
+#define DIRTY_TILES_BUFFER_CAPACITY 4
+
+struct DirtyTiles
+{
+    struct DirtyTile buffer[DIRTY_TILES_BUFFER_CAPACITY];
+    uint8_t count;
+
+} dirty_tiles;
+
+void init_dirty_tiles()
+{
+    dirty_tiles.count = 0;
+}
+
+void add_to_dirty_tiles(struct Node *node)
+{
+    struct DirtyTile *dirty = dirty_tiles.buffer + dirty_tiles.count++;
+    dirty->vram = (uint8_t *)(0x9800U + (node->y * 32U) + node->x);
+    dirty->indices = node->tiles;
+}
 
 inline struct Node *snake_advance_head()
 {
@@ -51,43 +81,6 @@ inline struct Node *snake_advance_tail()
         snake.tail = snake.nodes;
     }
     return snake.tail;
-}
-
-// set_bkg
-//
-// Apply tiles at the node location.
-// [0][1]
-// [2][3]
-void bkg_apply_node(struct Node *const node)
-{
-    /* Original code
-    bkg[((node->y + 0) * 32) + (node->x + 0)] = *tiles++;
-    bkg[((node->y + 0) * 32) + (node->x + 1)] = *tiles++;
-    bkg[((node->y + 1) * 32) + (node->x + 0)] = *tiles++;
-    bkg[((node->y + 1) * 32) + (node->x + 1)] = *tiles;
-    */
-
-    // Set base pointer
-    uint8_t *dst = bkg + (node->y * BKG_WIDTH) + node->x;
-
-    // [0][ ]
-    // [ ][ ]
-    *dst = *node->tiles++;
-    dst++;
-
-    // [ ][1]
-    // [ ][ ]
-    *dst = *node->tiles++;
-    dst += (BKG_WIDTH - 1);
-
-    // [ ][ ]
-    // [2][ ]
-    *dst = *node->tiles++;
-    dst++;
-
-    // [ ][ ]
-    // [ ][3]
-    *dst = *node->tiles++;
 }
 
 const uint8_t snake_tiles_empty[4] = {0, 0, 0, 0};
@@ -163,77 +156,104 @@ void snake_update(const uint8_t dir)
     {
         // Clear the previous tail tile
         cur_tail->tiles = snake_tiles_empty;
-        bkg_apply_node(cur_tail);
+        add_to_dirty_tiles(cur_tail);
 
         // Set the new tail tile
         struct Node *new_tail = snake_advance_tail();
         new_tail->tiles = snake_tiles_tail[new_tail->out];
-        bkg_apply_node(new_tail);
+        add_to_dirty_tiles(new_tail);
     }
 
     // Update head tiles
     if (cur_head->out == NODE_DIR_NORTH)
     {
         cur_head->tiles = snake_tiles_dir_north[cur_head->in];
-        bkg_apply_node(cur_head);
+        add_to_dirty_tiles(cur_head);
 
         struct Node *new_head = snake_advance_head();
         new_head->x = cur_head->x;
         new_head->y = cur_head->y - 2;
+        new_head->offset_x = 8;
+        new_head->offset_y = 15;
         new_head->in = NODE_DIR_NORTH;
         new_head->out = NODE_DIR_UNKNOWN;
         new_head->tiles = snake_tiles_head_N;
-        bkg_apply_node(new_head);
+        add_to_dirty_tiles(new_head);
     }
     else if (cur_head->out == NODE_DIR_SOUTH)
     {
         cur_head->tiles = snake_tiles_dir_south[cur_head->in];
-        bkg_apply_node(cur_head);
+        add_to_dirty_tiles(cur_head);
 
         struct Node *new_head = snake_advance_head();
         new_head->x = cur_head->x;
         new_head->y = cur_head->y + 2;
+        new_head->offset_x = 8;
+        new_head->offset_y = 0;
         new_head->in = NODE_DIR_SOUTH;
         new_head->out = NODE_DIR_UNKNOWN;
         new_head->tiles = snake_tiles_head_S;
-        bkg_apply_node(new_head);
+        add_to_dirty_tiles(new_head);
     }
     else if (cur_head->out == NODE_DIR_WEST)
     {
         cur_head->tiles = snake_tiles_dir_west[cur_head->in];
-        bkg_apply_node(cur_head);
+        add_to_dirty_tiles(cur_head);
 
         struct Node *new_head = snake_advance_head();
         new_head->x = cur_head->x - 2;
         new_head->y = cur_head->y;
+        new_head->offset_x = 15;
+        new_head->offset_y = 8;
         new_head->in = NODE_DIR_WEST;
         new_head->out = NODE_DIR_UNKNOWN;
         new_head->tiles = snake_tiles_head_W;
-        bkg_apply_node(new_head);
+        add_to_dirty_tiles(new_head);
     }
     else if (cur_head->out == NODE_DIR_EAST)
     {
         cur_head->tiles = snake_tiles_dir_east[cur_head->in];
-        bkg_apply_node(cur_head);
+        add_to_dirty_tiles(cur_head);
 
         struct Node *new_head = snake_advance_head();
         new_head->x = cur_head->x + 2;
         new_head->y = cur_head->y;
+        new_head->offset_x = 0;
+        new_head->offset_y = 8;
         new_head->in = NODE_DIR_EAST;
         new_head->out = NODE_DIR_UNKNOWN;
         new_head->tiles = snake_tiles_head_E;
-        bkg_apply_node(new_head);
+        add_to_dirty_tiles(new_head);
     }
-
-    set_bkg_tiles(0, 0, 32u, 32u, bkg);
 }
 
-void snake_tick()
+void snake_tick(uint8_t frame)`
 {
-    bkg_apply_node(snake.tail);
-    bkg_apply_node(snake.head);
+    if (frame == 8)
+    {
+        snake.tail->tiles += 4;
+        add_to_dirty_tiles(snake.tail);
 
-    set_bkg_tiles(0, 0, 32u, 32u, bkg);
+        snake.head->tiles += 4;
+        add_to_dirty_tiles(snake.head);
+    }
+
+    if (snake.head->in == NODE_DIR_NORTH)
+    {
+        snake.head->offset_y--;
+    }
+    else if (snake.head->in == NODE_DIR_SOUTH)
+    {
+        snake.head->offset_y++;
+    }
+    else if (snake.head->in == NODE_DIR_WEST)
+    {
+        snake.head->offset_x--;
+    }
+    else if (snake.head->in == NODE_DIR_EAST)
+    {
+        snake.head->offset_x++;
+    }
 }
 
 void init_gfx()
@@ -242,20 +262,30 @@ void init_gfx()
     set_bkg_data(0, gfx_snake_tilesLen, gfx_snake_tiles);
 
     memset(bkg, 0, 32 * 32);
+    for (uint8_t i = 0; i < 32; i++)
+    {
+        bkg[0 * 32 + i] = 2 + (i & 1);
+        bkg[31 * 32 + i] = 2 + (i & 1);
+        bkg[i * 32 + 0] = 2 + (i & 1);
+        bkg[i * 32 + 31] = 2 + (i & 1);
+    }
+    set_bkg_tiles(0, 0, 32u, 32u, bkg);
 
     // Setup initial snake
     snake.tail = snake.nodes;
-    snake.head = snake.nodes + 6;
+    snake.head = snake.nodes + 3;
 
     int x_pos = 2;
 
     struct Node *node = snake.tail;
     node->x = x_pos;
     node->y = 2;
+    node->offset_x = 0;
+    node->offset_y = 8;
     node->in = NODE_DIR_UNKNOWN;
     node->out = NODE_DIR_EAST;
     node->tiles = snake_tiles_tail_E;
-    bkg_apply_node(node);
+    add_to_dirty_tiles(node);
 
     while (node < snake.head - 1)
     {
@@ -264,10 +294,12 @@ void init_gfx()
 
         node->x = x_pos;
         node->y = 2;
+        node->offset_x = 0;
+        node->offset_y = 8;
         node->in = NODE_DIR_EAST;
         node->out = NODE_DIR_EAST;
         node->tiles = snake_tiles_body_H;
-        bkg_apply_node(node);
+        add_to_dirty_tiles(node);
     }
 
     node++;
@@ -275,12 +307,12 @@ void init_gfx()
 
     node->x = x_pos;
     node->y = 2;
+    node->offset_x = 0;
+    node->offset_y = 8;
     node->in = NODE_DIR_EAST;
     node->out = NODE_DIR_UNKNOWN;
     node->tiles = snake_tiles_head_E;
-    bkg_apply_node(node);
-
-    set_bkg_tiles(0, 0, 32u, 32u, bkg);
+    add_to_dirty_tiles(node);
 
     // Turn the background map on to make it visible
     SHOW_BKG;
@@ -288,24 +320,90 @@ void init_gfx()
 
 void main(void)
 {
+    init_dirty_tiles();
+
     init_gfx();
 
-    int8_t frame = 0;
-    int8_t pressedOnce = 0;
+    uint8_t frame = 0;
+    uint8_t pressedOnce = 0;
 
     // Loop forever
     while (1)
     {
+        // Wait for VBLANK to get access to the VRAM.
+        while ((STAT_REG & 3) != 1)
+            ;
+
+        // Copy new tile data
+        struct DirtyTile *tile = dirty_tiles.buffer;
+        while (tile < (dirty_tiles.buffer + dirty_tiles.count))
+        {
+            // indices:
+            // [0][1]
+            // [2][3]
+
+            uint8_t *dst = tile->vram;
+            const uint8_t *src = tile->indices;
+
+            *dst = *src++;
+            dst++;
+
+            *dst = *src++;
+            dst += (BKG_WIDTH - 1);
+
+            *dst = *src++;
+            dst++;
+
+            *dst = *src;
+
+            tile++;
+        }
+        dirty_tiles.count = 0;
+
+        //  Move the camera
+        uint8_t cx = (snake.head->x * 8) + snake.head->offset_x;
+        uint8_t wx;
+        if (cx < 80)
+        {
+            wx = 0;
+        }
+        else if (cx > (256 - 80))
+        {
+            wx = 256 - 160;
+        }
+        else
+        {
+            wx = cx - 80;
+        }
+
+        uint8_t cy = (snake.head->y * 8) + snake.head->offset_y;
+        uint8_t wy;
+        if (cy < 72)
+        {
+            wy = 0;
+        }
+        else if (cy > (256 - 72))
+        {
+            wy = 256 - 144;
+        }
+        else
+        {
+            wy = cy - 72;
+        }
+
+        move_bkg(wx, wy);
+
+        // Wait for VBLANK to end.
+        while ((STAT_REG & 3) == 1)
+            ;
+
         const uint8_t pressed = joypad();
         if (pressedOnce)
         {
-            if (frame == 8)
-            {
-                snake_tick();
-            }
-            else if (frame == 16)
+            if (frame == 16)
             {
                 frame = 0;
+
                 if (pressed & J_UP)
                 {
                     snake_update(NODE_DIR_NORTH);
@@ -327,15 +425,18 @@ void main(void)
                     snake_update(NODE_DIR_UNKNOWN);
                 }
             }
+            else
+            {
+                snake_tick(frame);
+            }
         }
         else
         {
             pressedOnce = pressed & (J_UP | J_DOWN | J_LEFT | J_RIGHT);
-            frame = 7;
+            frame = 0;
         }
 
-        // Done processing, yield CPU and wait for start of next frame
-        wait_vbl_done();
+        // Done processing
         frame++;
     }
 }
