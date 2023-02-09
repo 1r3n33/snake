@@ -1,6 +1,7 @@
 #include <gb/gb.h>
 #include <stdint.h>
 #include <string.h>
+#include "snake.h"
 #include "../res/snake_tiles.h"
 
 #define BKG_WIDTH 32
@@ -14,26 +15,6 @@ uint8_t bkg[BKG_WIDTH * BKG_HEIGHT];
 #define NODE_DIR_UNKNOWN 0xFF
 
 uint8_t opposite_direction[4] = {NODE_DIR_SOUTH, NODE_DIR_NORTH, NODE_DIR_EAST, NODE_DIR_WEST};
-
-struct Node
-{
-    uint8_t x;            // x pos
-    uint8_t y;            // y pos
-    uint8_t offset_x;     // center x offset
-    uint8_t offset_y;     // center y offset
-    uint8_t in;           // the enter direction, north, south, east, west
-    uint8_t out;          // the exit direction, north, south, east, west
-    const uint8_t *tiles; // tile indices
-};
-
-#define NODE_BUFFER_CAPACITY 16 // must be of power of two
-
-struct Snake
-{
-    struct Node nodes[NODE_BUFFER_CAPACITY];
-    struct Node *head;
-    struct Node *tail;
-} snake;
 
 // This is used to refresh tile indices in VRAM.
 struct DirtyTile
@@ -56,31 +37,11 @@ void init_dirty_tiles()
     dirty_tiles.count = 0;
 }
 
-void add_to_dirty_tiles(struct Node *node)
+void add_to_dirty_tiles(SnakeNode *node)
 {
     struct DirtyTile *dirty = dirty_tiles.buffer + dirty_tiles.count++;
     dirty->vram = (uint8_t *)(0x9800U + (node->y * 32U) + node->x);
     dirty->indices = node->tiles;
-}
-
-inline struct Node *snake_advance_head()
-{
-    snake.head++;
-    if (snake.head >= (snake.nodes + NODE_BUFFER_CAPACITY))
-    {
-        snake.head = snake.nodes;
-    }
-    return snake.head;
-}
-
-inline struct Node *snake_advance_tail()
-{
-    snake.tail++;
-    if (snake.tail >= (snake.nodes + NODE_BUFFER_CAPACITY))
-    {
-        snake.tail = snake.nodes;
-    }
-    return snake.tail;
 }
 
 const uint8_t snake_tiles_empty[4] = {0, 0, 0, 0};
@@ -138,8 +99,8 @@ const uint8_t *const snake_tiles_dir_east[4] = {snake_tiles_corner_N_E, snake_ti
 
 void snake_update(const uint8_t dir)
 {
-    struct Node *const cur_head = snake.head;
-    struct Node *const cur_tail = snake.tail;
+    SnakeNode *cur_head = snake_get_head();
+    SnakeNode *cur_tail = snake_get_tail();
 
     // Assign new direction
     if (dir != NODE_DIR_UNKNOWN && cur_head->in != opposite_direction[dir])
@@ -159,7 +120,7 @@ void snake_update(const uint8_t dir)
         add_to_dirty_tiles(cur_tail);
 
         // Set the new tail tile
-        struct Node *new_tail = snake_advance_tail();
+        SnakeNode *new_tail = snake_advance_tail();
         new_tail->tiles = snake_tiles_tail[new_tail->out];
         add_to_dirty_tiles(new_tail);
     }
@@ -170,7 +131,7 @@ void snake_update(const uint8_t dir)
         cur_head->tiles = snake_tiles_dir_north[cur_head->in];
         add_to_dirty_tiles(cur_head);
 
-        struct Node *new_head = snake_advance_head();
+        SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x;
         new_head->y = cur_head->y - 2;
         new_head->offset_x = 8;
@@ -185,7 +146,7 @@ void snake_update(const uint8_t dir)
         cur_head->tiles = snake_tiles_dir_south[cur_head->in];
         add_to_dirty_tiles(cur_head);
 
-        struct Node *new_head = snake_advance_head();
+        SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x;
         new_head->y = cur_head->y + 2;
         new_head->offset_x = 8;
@@ -200,7 +161,7 @@ void snake_update(const uint8_t dir)
         cur_head->tiles = snake_tiles_dir_west[cur_head->in];
         add_to_dirty_tiles(cur_head);
 
-        struct Node *new_head = snake_advance_head();
+        SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x - 2;
         new_head->y = cur_head->y;
         new_head->offset_x = 15;
@@ -215,7 +176,7 @@ void snake_update(const uint8_t dir)
         cur_head->tiles = snake_tiles_dir_east[cur_head->in];
         add_to_dirty_tiles(cur_head);
 
-        struct Node *new_head = snake_advance_head();
+        SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x + 2;
         new_head->y = cur_head->y;
         new_head->offset_x = 0;
@@ -229,30 +190,33 @@ void snake_update(const uint8_t dir)
 
 void snake_tick(uint8_t frame)`
 {
+    SnakeNode *tail = snake_get_tail();
+    SnakeNode *head = snake_get_head();
+
     if (frame == 8)
     {
-        snake.tail->tiles += 4;
-        add_to_dirty_tiles(snake.tail);
+        tail->tiles += 4;
+        add_to_dirty_tiles(tail);
 
-        snake.head->tiles += 4;
-        add_to_dirty_tiles(snake.head);
+        head->tiles += 4;
+        add_to_dirty_tiles(head);
     }
 
-    if (snake.head->in == NODE_DIR_NORTH)
+    if (head->in == NODE_DIR_NORTH)
     {
-        snake.head->offset_y--;
+        head->offset_y--;
     }
-    else if (snake.head->in == NODE_DIR_SOUTH)
+    else if (head->in == NODE_DIR_SOUTH)
     {
-        snake.head->offset_y++;
+        head->offset_y++;
     }
-    else if (snake.head->in == NODE_DIR_WEST)
+    else if (head->in == NODE_DIR_WEST)
     {
-        snake.head->offset_x--;
+        head->offset_x--;
     }
-    else if (snake.head->in == NODE_DIR_EAST)
+    else if (head->in == NODE_DIR_EAST)
     {
-        snake.head->offset_x++;
+        head->offset_x++;
     }
 }
 
@@ -272,12 +236,11 @@ void init_gfx()
     set_bkg_tiles(0, 0, 32u, 32u, bkg);
 
     // Setup initial snake
-    snake.tail = snake.nodes;
-    snake.head = snake.nodes + 3;
+    snake_init();
 
     int x_pos = 2;
 
-    struct Node *node = snake.tail;
+    SnakeNode *node = snake_get_head();
     node->x = x_pos;
     node->y = 2;
     node->offset_x = 0;
@@ -287,9 +250,9 @@ void init_gfx()
     node->tiles = snake_tiles_tail_E;
     add_to_dirty_tiles(node);
 
-    while (node < snake.head - 1)
+    for (uint8_t i = 0; i < 2; i++)
     {
-        node++;
+        node = snake_advance_head();
         x_pos += 2;
 
         node->x = x_pos;
@@ -302,7 +265,7 @@ void init_gfx()
         add_to_dirty_tiles(node);
     }
 
-    node++;
+    node = snake_advance_head();
     x_pos += 2;
 
     node->x = x_pos;
@@ -361,7 +324,9 @@ void main(void)
         dirty_tiles.count = 0;
 
         //  Move the camera
-        uint8_t cx = (snake.head->x * 8) + snake.head->offset_x;
+        SnakeNode *head = snake_get_head();
+
+        uint8_t cx = (head->x * 8) + head->offset_x;
         uint8_t wx;
         if (cx < 80)
         {
@@ -376,7 +341,7 @@ void main(void)
             wx = cx - 80;
         }
 
-        uint8_t cy = (snake.head->y * 8) + snake.head->offset_y;
+        uint8_t cy = (head->y * 8) + head->offset_y;
         uint8_t wy;
         if (cy < 72)
         {
