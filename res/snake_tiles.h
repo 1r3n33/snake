@@ -10,7 +10,7 @@
   Compression          : None.
   Counter              : Tile-count as Constant.
   Tile size            : 8 x 8
-  Tiles                : 0 to 23
+  Tiles                : 0 to 31
 
   Palette colors       : None.
   SGB Palette          : None.
@@ -29,7 +29,7 @@
 #define gfx_snake_tilesBank 0
 /* Start of tile array. */
 extern const unsigned char gfx_snake_tiles[];
-#define gfx_snake_tilesLen 24
+#define gfx_snake_tilesLen 32
 
 #endif
 

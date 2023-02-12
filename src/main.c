@@ -1,6 +1,8 @@
 #include <gb/gb.h>
 #include <stdint.h>
 #include <string.h>
+#include "camera.h"
+#include "eyes.h"
 #include "snake.h"
 #include "../res/snake_tiles.h"
 
@@ -188,7 +190,7 @@ void snake_update(const uint8_t dir)
     }
 }
 
-void snake_tick(uint8_t frame)`
+void snake_tick(uint8_t frame)
 {
     SnakeNode *tail = snake_get_tail();
     SnakeNode *head = snake_get_head();
@@ -220,7 +222,7 @@ void snake_tick(uint8_t frame)`
     }
 }
 
-void init_gfx()
+void init_bkg_gfx()
 {
     // Load Background tiles and then map
     set_bkg_data(0, gfx_snake_tilesLen, gfx_snake_tiles);
@@ -281,11 +283,25 @@ void init_gfx()
     SHOW_BKG;
 }
 
+void init_sprites_gfx()
+{
+    set_sprite_data(0, gfx_snake_tilesLen, gfx_snake_tiles);
+
+    eyes_init();
+    eyes_move(snake_get_head());
+
+    SPRITES_8x8;
+    SHOW_SPRITES;
+}
+
 void main(void)
 {
     init_dirty_tiles();
 
-    init_gfx();
+    init_bkg_gfx();
+    init_sprites_gfx();
+
+    camera_init(snake_get_head());
 
     uint8_t frame = 0;
     uint8_t pressedOnce = 0;
@@ -324,39 +340,10 @@ void main(void)
         dirty_tiles.count = 0;
 
         //  Move the camera
-        SnakeNode *head = snake_get_head();
-
-        uint8_t cx = (head->x * 8) + head->offset_x;
-        uint8_t wx;
-        if (cx < 80)
+        if (pressedOnce)
         {
-            wx = 0;
+            camera_move(snake_get_head());
         }
-        else if (cx > (256 - 80))
-        {
-            wx = 256 - 160;
-        }
-        else
-        {
-            wx = cx - 80;
-        }
-
-        uint8_t cy = (head->y * 8) + head->offset_y;
-        uint8_t wy;
-        if (cy < 72)
-        {
-            wy = 0;
-        }
-        else if (cy > (256 - 72))
-        {
-            wy = 256 - 144;
-        }
-        else
-        {
-            wy = cy - 72;
-        }
-
-        move_bkg(wx, wy);
 
         // Wait for VBLANK to end.
         while ((STAT_REG & 3) == 1)
@@ -394,14 +381,15 @@ void main(void)
             {
                 snake_tick(frame);
             }
+
+            eyes_move(snake_get_head());
+
+            frame++;
         }
         else
         {
             pressedOnce = pressed & (J_UP | J_DOWN | J_LEFT | J_RIGHT);
-            frame = 0;
+            frame = 1;
         }
-
-        // Done processing
-        frame++;
     }
 }

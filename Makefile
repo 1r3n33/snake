@@ -20,7 +20,7 @@ CSOURCES    = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreac
 ASMSOURCES  = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.s)))
 OBJS       = $(CSOURCES:%.c=$(OBJDIR)/%.o) $(ASMSOURCES:%.s=$(OBJDIR)/%.o)
 
-LCCFLAGS += -v -Wf--opt-code-speed -Wf--max-allocs-per-node300000 -Wf--verbose
+LCCFLAGS += -v -Wf--opt-code-speed -Wf--max-allocs-per-node300000 -Wf--verbose -Wf--Werror -Wl-m
 
 all:	prepare $(BINS)
 
