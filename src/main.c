@@ -1,49 +1,44 @@
 #include <gb/gb.h>
 #include <stdint.h>
 #include <string.h>
+#include "background.h"
 #include "camera.h"
+#include "direction.h"
 #include "eyes.h"
 #include "snake.h"
+#include "tiles_copy.h"
 #include "../res/snake_tiles.h"
 
-#define BKG_WIDTH 32
-#define BKG_HEIGHT 32
-uint8_t bkg[BKG_WIDTH * BKG_HEIGHT];
-
-#define NODE_DIR_NORTH 0
-#define NODE_DIR_SOUTH 1
-#define NODE_DIR_WEST 2
-#define NODE_DIR_EAST 3
-#define NODE_DIR_UNKNOWN 0xFF
-
-uint8_t opposite_direction[4] = {NODE_DIR_SOUTH, NODE_DIR_NORTH, NODE_DIR_EAST, NODE_DIR_WEST};
-
-// This is used to refresh tile indices in VRAM.
-struct DirtyTile
+// Update tile map
+// In-memory background (that handle collision) is updated immediately.
+// For VRAM update, tiles will be collected with 'tiles_copy_push' and updated during next VBLANK.
+// Use mask to specify which tiles of SnakeNode must be updated.
+// mask: [bit1][bit2]
+//       [bit3][bit4]
+void tiles_update(SnakeNode *node, uint8_t mask)
 {
-    uint8_t *vram;
-    const uint8_t *indices;
-};
+    uint16_t offset = (uint16_t)((node->y * 32U) + node->x);
 
-#define DIRTY_TILES_BUFFER_CAPACITY 4
-
-struct DirtyTiles
-{
-    struct DirtyTile buffer[DIRTY_TILES_BUFFER_CAPACITY];
-    uint8_t count;
-
-} dirty_tiles;
-
-void init_dirty_tiles()
-{
-    dirty_tiles.count = 0;
-}
-
-void add_to_dirty_tiles(SnakeNode *node)
-{
-    struct DirtyTile *dirty = dirty_tiles.buffer + dirty_tiles.count++;
-    dirty->vram = (uint8_t *)(0x9800U + (node->y * 32U) + node->x);
-    dirty->indices = node->tiles;
+    if (mask & 1)
+    {
+        background_update(offset, node->tiles[0]);
+        tiles_copy_push(offset, node->tiles[0]);
+    }
+    if (mask & 2)
+    {
+        background_update(offset + 1, node->tiles[1]);
+        tiles_copy_push(offset + 1, node->tiles[1]);
+    }
+    if (mask & 4)
+    {
+        background_update(offset + 32, node->tiles[2]);
+        tiles_copy_push(offset + 32, node->tiles[2]);
+    }
+    if (mask & 8)
+    {
+        background_update(offset + 33, node->tiles[3]);
+        tiles_copy_push(offset + 33, node->tiles[3]);
+    }
 }
 
 const uint8_t snake_tiles_empty[4] = {0, 0, 0, 0};
@@ -105,7 +100,7 @@ void snake_update(const uint8_t dir)
     SnakeNode *cur_tail = snake_get_tail();
 
     // Assign new direction
-    if (dir != NODE_DIR_UNKNOWN && cur_head->in != opposite_direction[dir])
+    if (dir != DIRECTION_UNKNOWN && cur_head->in != direction_get_opposite(dir))
     {
         cur_head->out = dir;
     }
@@ -115,78 +110,78 @@ void snake_update(const uint8_t dir)
     }
 
     // Update tail tiles
-    if (cur_head->in != NODE_DIR_UNKNOWN)
+    if (cur_head->in != DIRECTION_UNKNOWN)
     {
         // Clear the previous tail tile
         cur_tail->tiles = snake_tiles_empty;
-        add_to_dirty_tiles(cur_tail);
+        tiles_update(cur_tail, 0xFF);
 
         // Set the new tail tile
         SnakeNode *new_tail = snake_advance_tail();
         new_tail->tiles = snake_tiles_tail[new_tail->out];
-        add_to_dirty_tiles(new_tail);
+        tiles_update(new_tail, 0xFF);
     }
 
     // Update head tiles
-    if (cur_head->out == NODE_DIR_NORTH)
+    if (cur_head->out == DIRECTION_NORTH)
     {
         cur_head->tiles = snake_tiles_dir_north[cur_head->in];
-        add_to_dirty_tiles(cur_head);
+        tiles_update(cur_head, 0xFF);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x;
         new_head->y = cur_head->y - 2;
         new_head->offset_x = 8;
         new_head->offset_y = 15;
-        new_head->in = NODE_DIR_NORTH;
-        new_head->out = NODE_DIR_UNKNOWN;
+        new_head->in = DIRECTION_NORTH;
+        new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_N;
-        add_to_dirty_tiles(new_head);
+        tiles_update(new_head, 0x0C);
     }
-    else if (cur_head->out == NODE_DIR_SOUTH)
+    else if (cur_head->out == DIRECTION_SOUTH)
     {
         cur_head->tiles = snake_tiles_dir_south[cur_head->in];
-        add_to_dirty_tiles(cur_head);
+        tiles_update(cur_head, 0xFF);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x;
         new_head->y = cur_head->y + 2;
         new_head->offset_x = 8;
         new_head->offset_y = 0;
-        new_head->in = NODE_DIR_SOUTH;
-        new_head->out = NODE_DIR_UNKNOWN;
+        new_head->in = DIRECTION_SOUTH;
+        new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_S;
-        add_to_dirty_tiles(new_head);
+        tiles_update(new_head, 0x03);
     }
-    else if (cur_head->out == NODE_DIR_WEST)
+    else if (cur_head->out == DIRECTION_WEST)
     {
         cur_head->tiles = snake_tiles_dir_west[cur_head->in];
-        add_to_dirty_tiles(cur_head);
+        tiles_update(cur_head, 0xFF);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x - 2;
         new_head->y = cur_head->y;
         new_head->offset_x = 15;
         new_head->offset_y = 8;
-        new_head->in = NODE_DIR_WEST;
-        new_head->out = NODE_DIR_UNKNOWN;
+        new_head->in = DIRECTION_WEST;
+        new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_W;
-        add_to_dirty_tiles(new_head);
+        tiles_update(new_head, 0x0A);
     }
-    else if (cur_head->out == NODE_DIR_EAST)
+    else if (cur_head->out == DIRECTION_EAST)
     {
         cur_head->tiles = snake_tiles_dir_east[cur_head->in];
-        add_to_dirty_tiles(cur_head);
+        tiles_update(cur_head, 0xFF);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x + 2;
         new_head->y = cur_head->y;
         new_head->offset_x = 0;
         new_head->offset_y = 8;
-        new_head->in = NODE_DIR_EAST;
-        new_head->out = NODE_DIR_UNKNOWN;
+        new_head->in = DIRECTION_EAST;
+        new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_E;
-        add_to_dirty_tiles(new_head);
+        tiles_update(new_head, 0x05);
     }
 }
 
@@ -195,30 +190,39 @@ void snake_tick(uint8_t frame)
     SnakeNode *tail = snake_get_tail();
     SnakeNode *head = snake_get_head();
 
-    if (frame == 8)
-    {
-        tail->tiles += 4;
-        add_to_dirty_tiles(tail);
-
-        head->tiles += 4;
-        add_to_dirty_tiles(head);
-    }
-
-    if (head->in == NODE_DIR_NORTH)
+    if (head->in == DIRECTION_NORTH)
     {
         head->offset_y--;
     }
-    else if (head->in == NODE_DIR_SOUTH)
+    else if (head->in == DIRECTION_SOUTH)
     {
         head->offset_y++;
     }
-    else if (head->in == NODE_DIR_WEST)
+    else if (head->in == DIRECTION_WEST)
     {
         head->offset_x--;
     }
-    else if (head->in == NODE_DIR_EAST)
+    else if (head->in == DIRECTION_EAST)
     {
         head->offset_x++;
+    }
+
+    if (frame == 7 || frame == 15) // frame & 7 == 7
+    {
+        while (background_check_collision(head))
+        {
+            eyes_ko();
+            wait_vbl_done();
+        }
+    }
+
+    if (frame == 8)
+    {
+        tail->tiles += 4;
+        tiles_update(tail, 0xFF);
+
+        head->tiles += 4;
+        tiles_update(head, 0xFF);
     }
 }
 
@@ -227,15 +231,8 @@ void init_bkg_gfx()
     // Load Background tiles and then map
     set_bkg_data(0, gfx_snake_tilesLen, gfx_snake_tiles);
 
-    memset(bkg, 0, 32 * 32);
-    for (uint8_t i = 0; i < 32; i++)
-    {
-        bkg[0 * 32 + i] = 2 + (i & 1);
-        bkg[31 * 32 + i] = 2 + (i & 1);
-        bkg[i * 32 + 0] = 2 + (i & 1);
-        bkg[i * 32 + 31] = 2 + (i & 1);
-    }
-    set_bkg_tiles(0, 0, 32u, 32u, bkg);
+    background_init();
+    set_bkg_tiles(0, 0, 32u, 32u, background_get());
 
     // Setup initial snake
     snake_init();
@@ -247,10 +244,10 @@ void init_bkg_gfx()
     node->y = 2;
     node->offset_x = 0;
     node->offset_y = 8;
-    node->in = NODE_DIR_UNKNOWN;
-    node->out = NODE_DIR_EAST;
+    node->in = DIRECTION_UNKNOWN;
+    node->out = DIRECTION_EAST;
     node->tiles = snake_tiles_tail_E;
-    add_to_dirty_tiles(node);
+    tiles_update(node, 0xFF);
 
     for (uint8_t i = 0; i < 2; i++)
     {
@@ -261,10 +258,10 @@ void init_bkg_gfx()
         node->y = 2;
         node->offset_x = 0;
         node->offset_y = 8;
-        node->in = NODE_DIR_EAST;
-        node->out = NODE_DIR_EAST;
+        node->in = DIRECTION_EAST;
+        node->out = DIRECTION_EAST;
         node->tiles = snake_tiles_body_H;
-        add_to_dirty_tiles(node);
+        tiles_update(node, 0xFF);
     }
 
     node = snake_advance_head();
@@ -274,10 +271,10 @@ void init_bkg_gfx()
     node->y = 2;
     node->offset_x = 0;
     node->offset_y = 8;
-    node->in = NODE_DIR_EAST;
-    node->out = NODE_DIR_UNKNOWN;
+    node->in = DIRECTION_EAST;
+    node->out = DIRECTION_UNKNOWN;
     node->tiles = snake_tiles_head_E;
-    add_to_dirty_tiles(node);
+    tiles_update(node, 0x05);
 
     // Turn the background map on to make it visible
     SHOW_BKG;
@@ -296,7 +293,7 @@ void init_sprites_gfx()
 
 void main(void)
 {
-    init_dirty_tiles();
+    tiles_copy_init();
 
     init_bkg_gfx();
     init_sprites_gfx();
@@ -313,31 +310,7 @@ void main(void)
         while ((STAT_REG & 3) != 1)
             ;
 
-        // Copy new tile data
-        struct DirtyTile *tile = dirty_tiles.buffer;
-        while (tile < (dirty_tiles.buffer + dirty_tiles.count))
-        {
-            // indices:
-            // [0][1]
-            // [2][3]
-
-            uint8_t *dst = tile->vram;
-            const uint8_t *src = tile->indices;
-
-            *dst = *src++;
-            dst++;
-
-            *dst = *src++;
-            dst += (BKG_WIDTH - 1);
-
-            *dst = *src++;
-            dst++;
-
-            *dst = *src;
-
-            tile++;
-        }
-        dirty_tiles.count = 0;
+        tiles_copy_run();
 
         //  Move the camera
         if (pressedOnce)
@@ -349,6 +322,8 @@ void main(void)
         while ((STAT_REG & 3) == 1)
             ;
 
+        tiles_copy_init(); // reset
+
         const uint8_t pressed = joypad();
         if (pressedOnce)
         {
@@ -358,23 +333,23 @@ void main(void)
 
                 if (pressed & J_UP)
                 {
-                    snake_update(NODE_DIR_NORTH);
+                    snake_update(DIRECTION_NORTH);
                 }
                 else if (pressed & J_DOWN)
                 {
-                    snake_update(NODE_DIR_SOUTH);
+                    snake_update(DIRECTION_SOUTH);
                 }
                 else if (pressed & J_LEFT)
                 {
-                    snake_update(NODE_DIR_WEST);
+                    snake_update(DIRECTION_WEST);
                 }
                 else if (pressed & J_RIGHT)
                 {
-                    snake_update(NODE_DIR_EAST);
+                    snake_update(DIRECTION_EAST);
                 }
                 else
                 {
-                    snake_update(NODE_DIR_UNKNOWN);
+                    snake_update(DIRECTION_UNKNOWN);
                 }
             }
             else

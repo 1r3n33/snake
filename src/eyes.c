@@ -129,3 +129,16 @@ void eyes_move(SnakeNode *head)
     move_sprite(6, cx + SPRITE6_X_OFFSET[head->in], cy + SPRITE6_Y_OFFSET[head->in]);
     move_sprite(7, cx + SPRITE7_X_OFFSET[head->in], cy + SPRITE7_Y_OFFSET[head->in]);
 }
+
+void eyes_ko()
+{
+    set_sprite_tile(0, 28);
+    set_sprite_tile(1, 29);
+    set_sprite_tile(2, 30);
+    set_sprite_tile(3, 31);
+
+    set_sprite_tile(4, 28);
+    set_sprite_tile(5, 29);
+    set_sprite_tile(6, 30);
+    set_sprite_tile(7, 31);
+}
