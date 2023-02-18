@@ -2,10 +2,12 @@
 #include <stdint.h>
 #include <string.h>
 #include "background.h"
+#include "bonus.h"
 #include "camera.h"
 #include "direction.h"
 #include "eyes.h"
 #include "snake.h"
+#include "state.h"
 #include "tiles_copy.h"
 #include "../res/snake_tiles.h"
 
@@ -97,7 +99,6 @@ const uint8_t *const snake_tiles_dir_east[4] = {snake_tiles_corner_N_E, snake_ti
 void snake_update(const uint8_t dir)
 {
     SnakeNode *cur_head = snake_get_head();
-    SnakeNode *cur_tail = snake_get_tail();
 
     // Assign new direction
     if (dir != DIRECTION_UNKNOWN && cur_head->in != direction_get_opposite(dir))
@@ -112,14 +113,30 @@ void snake_update(const uint8_t dir)
     // Update tail tiles
     if (cur_head->in != DIRECTION_UNKNOWN)
     {
-        // Clear the previous tail tile
-        cur_tail->tiles = snake_tiles_empty;
-        tiles_update(cur_tail, 0xFF);
+        State *state = state_get();
+        SnakeNode *cur_tail = snake_get_tail();
 
-        // Set the new tail tile
-        SnakeNode *new_tail = snake_advance_tail();
-        new_tail->tiles = snake_tiles_tail[new_tail->out];
-        tiles_update(new_tail, 0xFF);
+        // Do not shrink if the tail is locked
+        if (state->tail_locked)
+        {
+            // Rewind the tiles pointer so next snake_tick will look the same.
+            // Alternatively, It could be implemented in snake_tick to save tiles copy.
+            cur_tail->tiles -= 4U;
+            // Unlock tail
+            state->tail_locked = 0U;
+        }
+        else
+        {
+
+            // Clear the previous tail tile
+            cur_tail->tiles = snake_tiles_empty;
+            tiles_update(cur_tail, 0xFF);
+
+            // Set the new tail tile
+            SnakeNode *new_tail = snake_advance_tail();
+            new_tail->tiles = snake_tiles_tail[new_tail->out];
+            tiles_update(new_tail, 0xFF);
+        }
     }
 
     // Update head tiles
@@ -287,12 +304,15 @@ void init_sprites_gfx()
     eyes_init();
     eyes_move(snake_get_head());
 
+    bonus_init();
+
     SPRITES_8x8;
     SHOW_SPRITES;
 }
 
 void main(void)
 {
+    state_init();
     tiles_copy_init();
 
     init_bkg_gfx();
@@ -357,7 +377,9 @@ void main(void)
                 snake_tick(frame);
             }
 
-            eyes_move(snake_get_head());
+            SnakeNode *head = snake_get_head();
+            eyes_move(head);
+            bonus_update(head);
 
             frame++;
         }

@@ -14,7 +14,7 @@ typedef struct SnakeNode
     const uint8_t *tiles; // tile indices
 } SnakeNode;
 
-#define SNAKE_BUFFER_CAPACITY 16 // must be of power of two
+#define SNAKE_BUFFER_CAPACITY 64 // must be of power of two
 
 typedef struct Snake
 {
