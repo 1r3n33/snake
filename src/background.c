@@ -63,3 +63,21 @@ uint8_t background_check_collision(SnakeNode *head)
 
     return 0;
 }
+
+uint8_t background_peek_1x1(uint8_t x, uint8_t y)
+{
+    return *(background + (y * BACKGROUND_WIDTH) + x);
+}
+
+uint8_t background_peek_2x2(uint8_t x, uint8_t y)
+{
+    uint8_t *bkg = (background + (y * BACKGROUND_WIDTH) + x);
+    uint8_t res = *bkg;
+    bkg++;
+    res |= *bkg;
+    bkg += BACKGROUND_WIDTH;
+    res = *bkg;
+    bkg++;
+    res |= *bkg;
+    return res;
+}

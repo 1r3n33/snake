@@ -1,4 +1,5 @@
 #include <gb/gb.h>
+#include <rand.h>
 #include <stdint.h>
 #include <string.h>
 #include "background.h"
@@ -326,6 +327,9 @@ void main(void)
     // Loop forever
     while (1)
     {
+        // Used as a frame start marker.
+        __asm__("halt");
+
         // Wait for VBLANK to get access to the VRAM.
         while ((STAT_REG & 3) != 1)
             ;
@@ -386,6 +390,7 @@ void main(void)
         else
         {
             pressedOnce = pressed & (J_UP | J_DOWN | J_LEFT | J_RIGHT);
+            initrand(((uint16_t)DIV_REG << 8) | pressed);
             frame = 1;
         }
     }
