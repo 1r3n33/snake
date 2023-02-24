@@ -20,27 +20,30 @@
 //       [bit3][bit4]
 void tiles_update(SnakeNode *node, uint8_t mask)
 {
-    uint16_t offset = (uint16_t)((node->y * 32U) + node->x);
+    uint16_t x = node->x;
+    uint16_t y = node->y;
+    uint16_t bkg_offset = (uint16_t)((y * BACKGROUND_WIDTH) + x);
+    uint16_t vram_offset = (uint16_t)(((y % DEVICE_SCREEN_BUFFER_HEIGHT) * DEVICE_SCREEN_BUFFER_WIDTH) + (x % DEVICE_SCREEN_BUFFER_WIDTH));
 
     if (mask & 1)
     {
-        background_update(offset, node->tiles[0]);
-        tiles_copy_push(offset, node->tiles[0]);
+        background_update(bkg_offset, node->tiles[0]);
+        tiles_copy_push(vram_offset, node->tiles[0]);
     }
     if (mask & 2)
     {
-        background_update(offset + 1, node->tiles[1]);
-        tiles_copy_push(offset + 1, node->tiles[1]);
+        background_update(bkg_offset + 1U, node->tiles[1]);
+        tiles_copy_push(vram_offset + 1U, node->tiles[1]);
     }
     if (mask & 4)
     {
-        background_update(offset + 32, node->tiles[2]);
-        tiles_copy_push(offset + 32, node->tiles[2]);
+        background_update(bkg_offset + BACKGROUND_WIDTH, node->tiles[2]);
+        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
     }
     if (mask & 8)
     {
-        background_update(offset + 33, node->tiles[3]);
-        tiles_copy_push(offset + 33, node->tiles[3]);
+        background_update(bkg_offset + BACKGROUND_WIDTH + 1U, node->tiles[3]);
+        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
     }
 }
 
@@ -250,7 +253,7 @@ void init_bkg_gfx()
     set_bkg_data(0, gfx_snake_tilesLen, gfx_snake_tiles);
 
     background_init();
-    set_bkg_tiles(0, 0, 32u, 32u, background_get());
+    set_bkg_submap(0U, 0U, DEVICE_SCREEN_WIDTH + 1, DEVICE_SCREEN_HEIGHT + 1, background_get(), BACKGROUND_WIDTH);
 
     // Setup initial snake
     snake_init();
@@ -314,7 +317,7 @@ void init_sprites_gfx()
 void main(void)
 {
     state_init();
-    tiles_copy_init();
+    tc_init();
 
     init_bkg_gfx();
     init_sprites_gfx();
@@ -336,17 +339,21 @@ void main(void)
 
         tiles_copy_run();
 
-        //  Move the camera
-        if (pressedOnce)
+        if (frame == 3 || frame == 11)
         {
-            camera_move(snake_get_head());
+            tc_apply_row();
         }
+        if (frame == 4 || frame == 12)
+        {
+            tc_apply_column();
+        }
+        camera_apply();
 
         // Wait for VBLANK to end.
         while ((STAT_REG & 3) == 1)
             ;
 
-        tiles_copy_init(); // reset
+        tc_reset();
 
         const uint8_t pressed = joypad();
         if (pressedOnce)
@@ -382,6 +389,9 @@ void main(void)
             }
 
             SnakeNode *head = snake_get_head();
+
+            camera_move(head);
+
             eyes_move(head);
             bonus_update(head);
 

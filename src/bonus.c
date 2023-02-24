@@ -1,6 +1,7 @@
 #include <gb/gb.h>
 #include <rand.h>
 #include "background.h"
+#include "camera.h"
 #include "bonus.h"
 #include "state.h"
 
@@ -91,8 +92,9 @@ void bonus_update_visible(SnakeNode *head)
         }
         else
         {
-            uint16_t x = DEVICE_SPRITE_PX_OFFSET_X + (bonus.x * 8) - SCX_REG;
-            uint16_t y = DEVICE_SPRITE_PX_OFFSET_Y + (bonus.y * 8) - SCY_REG;
+            Camera *cam = camera_get();
+            uint16_t x = DEVICE_SPRITE_PX_OFFSET_X + (bonus.x * 8) - (cam->sx % DEVICE_SCREEN_BUFFER_WIDTH);
+            uint16_t y = DEVICE_SPRITE_PX_OFFSET_Y + (bonus.y * 8) - (cam->sy % DEVICE_SCREEN_BUFFER_HEIGHT);
             move_sprite(8, x, y);
             move_sprite(9, x, y + 8);
             move_sprite(10, x + 8, y);
