@@ -1,4 +1,5 @@
 #include <gb/gb.h>
+#include "camera.h"
 #include "eyes.h"
 #include "snake.h"
 
@@ -117,8 +118,9 @@ const uint8_t SPRITE7_Y_OFFSET[4] = {
 
 void eyes_move(SnakeNode *head)
 {
-    uint8_t cx = ((head->x * 8) + head->offset_x) - SCX_REG;
-    uint8_t cy = ((head->y * 8) + head->offset_y) - SCY_REG;
+    Camera *cam = camera_get();
+    uint8_t cx = ((head->x * 8U) + head->offset_x) - (cam->sx % 256U);
+    uint8_t cy = ((head->y * 8U) + head->offset_y) - (cam->sy % 256U);
 
     move_sprite(0, cx + SPRITE0_X_OFFSET[head->in], cy + SPRITE0_Y_OFFSET[head->in]);
     move_sprite(1, cx + SPRITE1_X_OFFSET[head->in], cy + SPRITE1_Y_OFFSET[head->in]);
