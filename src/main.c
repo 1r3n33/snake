@@ -10,6 +10,7 @@
 #include "snake.h"
 #include "state.h"
 #include "tiles_copy.h"
+#include "../res/tileset.h"
 #include "../res/snake_tiles.h"
 
 // Update tile map
@@ -47,7 +48,7 @@ void tiles_update(SnakeNode *node, uint8_t mask)
     }
 }
 
-const uint8_t snake_tiles_empty[4] = {0, 0, 0, 0};
+const uint8_t snake_tiles_empty[4] = {252, 252, 252, 252};
 
 #define FRAME_COUNT 2
 
@@ -55,24 +56,24 @@ const uint8_t snake_tiles_empty[4] = {0, 0, 0, 0};
 //  __
 // (__ <- going W
 //
-const uint8_t snake_tiles_head_N[FRAME_COUNT * 4] = {0, 0, 4, 6, 4, 6, 8, 9};
-const uint8_t snake_tiles_head_S[FRAME_COUNT * 4] = {5, 7, 0, 0, 8, 9, 5, 7};
-const uint8_t snake_tiles_head_W[FRAME_COUNT * 4] = {0, 4, 0, 5, 4, 10, 5, 11};
-const uint8_t snake_tiles_head_E[FRAME_COUNT * 4] = {6, 0, 7, 0, 10, 6, 11, 7};
+const uint8_t snake_tiles_head_N[FRAME_COUNT * 4] = {252, 252, 128, 130, 128, 130, 240, 241};
+const uint8_t snake_tiles_head_S[FRAME_COUNT * 4] = {129, 131, 252, 252, 240, 241, 129, 131};
+const uint8_t snake_tiles_head_W[FRAME_COUNT * 4] = {252, 128, 252, 129, 128, 242, 129, 243};
+const uint8_t snake_tiles_head_E[FRAME_COUNT * 4] = {130, 252, 131, 252, 242, 130, 243, 131};
 
 // Tails are expressed in direction
 //  __
 // (__ <- going E
 //
-const uint8_t snake_tiles_tail_S[FRAME_COUNT * 4] = {4, 6, 8, 9, 0, 0, 4, 6};
-const uint8_t snake_tiles_tail_N[FRAME_COUNT * 4] = {8, 9, 5, 7, 5, 7, 0, 0};
-const uint8_t snake_tiles_tail_E[FRAME_COUNT * 4] = {4, 10, 5, 11, 0, 4, 0, 5};
-const uint8_t snake_tiles_tail_W[FRAME_COUNT * 4] = {10, 6, 11, 7, 6, 0, 7, 0};
+const uint8_t snake_tiles_tail_S[FRAME_COUNT * 4] = {128, 130, 240, 241, 252, 252, 128, 130};
+const uint8_t snake_tiles_tail_N[FRAME_COUNT * 4] = {240, 241, 129, 131, 129, 131, 252, 252};
+const uint8_t snake_tiles_tail_E[FRAME_COUNT * 4] = {128, 242, 129, 243, 252, 128, 252, 129};
+const uint8_t snake_tiles_tail_W[FRAME_COUNT * 4] = {242, 130, 243, 131, 130, 252, 131, 252};
 
 // Bodies
 //
-const uint8_t snake_tiles_body_V[FRAME_COUNT * 4] = {8, 9, 8, 9, 8, 9, 8, 9};
-const uint8_t snake_tiles_body_H[FRAME_COUNT * 4] = {10, 10, 11, 11, 10, 10, 11, 11};
+const uint8_t snake_tiles_body_V[FRAME_COUNT * 4] = {240, 241, 240, 241, 240, 241, 240, 241};
+const uint8_t snake_tiles_body_H[FRAME_COUNT * 4] = {242, 242, 243, 243, 242, 242, 243, 243};
 
 // Corners are expressed in direction
 //
@@ -82,15 +83,15 @@ const uint8_t snake_tiles_body_H[FRAME_COUNT * 4] = {10, 10, 11, 11, 10, 10, 11,
 // _ \.
 //  | |  <- This corner is both N->W and E-S
 //
-const uint8_t snake_tiles_corner_E_N[FRAME_COUNT * 4] = {2, 18, 23, 19, 2, 18, 23, 19};
-const uint8_t snake_tiles_corner_W_N[FRAME_COUNT * 4] = {16, 2, 17, 21, 16, 2, 17, 21};
-const uint8_t snake_tiles_corner_E_S[FRAME_COUNT * 4] = {22, 14, 2, 15, 22, 14, 2, 15};
-const uint8_t snake_tiles_corner_W_S[FRAME_COUNT * 4] = {12, 20, 13, 2, 12, 20, 13, 2};
+const uint8_t snake_tiles_corner_E_N[FRAME_COUNT * 4] = {250, 138, 143, 139, 250, 138, 143, 139};
+const uint8_t snake_tiles_corner_W_N[FRAME_COUNT * 4] = {136, 250, 137, 141, 136, 250, 137, 141};
+const uint8_t snake_tiles_corner_E_S[FRAME_COUNT * 4] = {142, 134, 250, 135, 142, 134, 250, 135};
+const uint8_t snake_tiles_corner_W_S[FRAME_COUNT * 4] = {132, 140, 133, 250, 132, 140, 133, 250};
 
-const uint8_t snake_tiles_corner_S_W[FRAME_COUNT * 4] = {2, 18, 23, 19, 2, 18, 23, 19};
-const uint8_t snake_tiles_corner_S_E[FRAME_COUNT * 4] = {16, 2, 17, 21, 16, 2, 17, 21};
-const uint8_t snake_tiles_corner_N_W[FRAME_COUNT * 4] = {22, 14, 2, 15, 22, 14, 2, 15};
-const uint8_t snake_tiles_corner_N_E[FRAME_COUNT * 4] = {12, 20, 13, 2, 12, 20, 13, 2};
+const uint8_t snake_tiles_corner_S_W[FRAME_COUNT * 4] = {250, 138, 143, 139, 250, 138, 143, 139};
+const uint8_t snake_tiles_corner_S_E[FRAME_COUNT * 4] = {136, 250, 137, 141, 136, 250, 137, 141};
+const uint8_t snake_tiles_corner_N_W[FRAME_COUNT * 4] = {142, 134, 250, 135, 142, 134, 250, 135};
+const uint8_t snake_tiles_corner_N_E[FRAME_COUNT * 4] = {132, 140, 133, 250, 132, 140, 133, 250};
 
 // N S W E
 // Indexed by the entering direction of the node
@@ -250,7 +251,7 @@ void snake_tick(uint8_t frame)
 void init_bkg_gfx()
 {
     // Load Background tiles and then map
-    set_bkg_data(0, gfx_snake_tilesLen, gfx_snake_tiles);
+    set_bkg_data(0, tilesetLen, tileset);
 
     background_init();
     set_bkg_submap(0U, 0U, DEVICE_SCREEN_WIDTH + 1, DEVICE_SCREEN_HEIGHT + 1, background_get(), BACKGROUND_WIDTH);
