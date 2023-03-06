@@ -10,8 +10,8 @@
 #include "snake.h"
 #include "state.h"
 #include "tiles_copy.h"
-#include "../res/tileset.h"
-#include "../res/snake_tiles.h"
+#include "../res/gfx_sprites.h"
+#include "../res/gfx_background.h"
 
 // Update tile map
 // In-memory background (that handle collision) is updated immediately.
@@ -251,7 +251,7 @@ void snake_tick(uint8_t frame)
 void init_bkg_gfx()
 {
     // Load Background tiles and then map
-    set_bkg_data(0, tilesetLen, tileset);
+    set_bkg_data(0, gfx_backgroundLen, gfx_background);
 
     background_init();
     set_bkg_submap(0U, 0U, DEVICE_SCREEN_WIDTH + 1, DEVICE_SCREEN_HEIGHT + 1, background_get(), BACKGROUND_WIDTH);
@@ -304,7 +304,7 @@ void init_bkg_gfx()
 
 void init_sprites_gfx()
 {
-    set_sprite_data(0, gfx_snake_tilesLen, gfx_snake_tiles);
+    set_sprite_data(0, gfx_spritesLen, gfx_sprites);
 
     eyes_init();
     eyes_move(snake_get_head());

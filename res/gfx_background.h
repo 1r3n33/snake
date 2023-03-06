@@ -1,6 +1,6 @@
 /*
 
- TILESET.H
+ GFX_BACKGROUND.H
 
  Include File.
 
@@ -22,15 +22,15 @@
 
 */
 
-#ifndef __tileset_h_INCLUDE
-#define __tileset_h_INCLUDE
+#ifndef __gfx_background_h_INCLUDE
+#define __gfx_background_h_INCLUDE
 
 /* Bank of tiles. */
-#define tilesetBank 0
+#define gfx_backgroundBank 0
 /* Start of tile array. */
-extern const unsigned char tileset[];
-#define tilesetLen 256
+extern const unsigned char gfx_background[];
+#define gfx_backgroundLen 256
 
 #endif
 
-/* End of TILESET.H */
+/* End of GFX_BACKGROUND.H */

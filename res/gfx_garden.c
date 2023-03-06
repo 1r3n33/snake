@@ -1,6 +1,6 @@
 /*
 
- TILEMAP.C
+ GFX_GARDEN.C
 
  Map Source File.
 
@@ -8,7 +8,7 @@
    Section       : 
    Bank          : 0
    Map size      : 64 x 64
-   Tile set      : Z:\home\irenee\work\dev\gb\snake\res\tiles.gbr
+   Tile set      : background.gbr
    Plane count   : 1 plane (8 bits)
    Plane order   : Tiles are continues
    Tile offset   : 0
@@ -18,11 +18,11 @@
 
 */
 
-#define tilemapWidth 64
-#define tilemapHeight 64
-#define tilemapBank 0
+#define gfx_gardenWidth 64
+#define gfx_gardenHeight 64
+#define gfx_gardenBank 0
 
-const unsigned char tilemap[] =
+const unsigned char gfx_garden[] =
 {
   0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,
   0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,0xF9,
@@ -436,4 +436,4 @@ const unsigned char tilemap[] =
   0xF9,0xF9,0xF9,0xF9,0xF9,0xF9
 };
 
-/* End of TILEMAP.C */
+/* End of GFX_GARDEN.C */

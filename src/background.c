@@ -1,7 +1,7 @@
 #include <string.h>
 #include "background.h"
 #include "direction.h"
-#include "../res/tilemap.h"
+#include "../res/gfx_garden.h"
 
 uint8_t background[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
@@ -13,7 +13,7 @@ uint8_t *background_get()
 // Initialize a checker background
 void background_init()
 {
-    memcpy(background, tilemap, BACKGROUND_WIDTH * BACKGROUND_HEIGHT);
+    memcpy(background, gfx_garden, BACKGROUND_WIDTH * BACKGROUND_HEIGHT);
 }
 
 void background_update(uint16_t offset, uint8_t v)

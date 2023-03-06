@@ -1,6 +1,6 @@
 /*
 
- SNAKE_TILES.H
+ GFX_SPRITES.H
 
  Include File.
 
@@ -22,15 +22,15 @@
 
 */
 
-#ifndef __snake_tiles_h_INCLUDE
-#define __snake_tiles_h_INCLUDE
+#ifndef __gfx_sprites_h_INCLUDE
+#define __gfx_sprites_h_INCLUDE
 
 /* Bank of tiles. */
-#define gfx_snake_tilesBank 0
+#define gfx_spritesBank 0
 /* Start of tile array. */
-extern const unsigned char gfx_snake_tiles[];
-#define gfx_snake_tilesLen 40
+extern const unsigned char gfx_sprites[];
+#define gfx_spritesLen 40
 
 #endif
 
-/* End of SNAKE_TILES.H */
+/* End of GFX_SPRITES.H */
