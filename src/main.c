@@ -106,7 +106,7 @@ void snake_update(const uint8_t dir)
     SnakeNode *cur_head = snake_get_head();
 
     // Assign new direction
-    if (dir != DIRECTION_UNKNOWN && cur_head->in != direction_get_opposite(dir))
+    if (cur_head->in != direction_get_opposite(dir))
     {
         cur_head->out = dir;
     }
@@ -116,32 +116,29 @@ void snake_update(const uint8_t dir)
     }
 
     // Update tail tiles
-    if (cur_head->in != DIRECTION_UNKNOWN)
+    State *state = state_get();
+    SnakeNode *cur_tail = snake_get_tail();
+
+    // Do not shrink if the tail is locked
+    if (state->tail_locked)
     {
-        State *state = state_get();
-        SnakeNode *cur_tail = snake_get_tail();
+        // Rewind the tiles pointer so next snake_tick will look the same.
+        // Alternatively, It could be implemented in snake_tick to save tiles copy.
+        cur_tail->tiles -= 4U;
+        // Unlock tail
+        state->tail_locked = 0U;
+    }
+    else
+    {
 
-        // Do not shrink if the tail is locked
-        if (state->tail_locked)
-        {
-            // Rewind the tiles pointer so next snake_tick will look the same.
-            // Alternatively, It could be implemented in snake_tick to save tiles copy.
-            cur_tail->tiles -= 4U;
-            // Unlock tail
-            state->tail_locked = 0U;
-        }
-        else
-        {
+        // Clear the previous tail tile
+        cur_tail->tiles = snake_tiles_empty;
+        tiles_update(cur_tail, 0xFF);
 
-            // Clear the previous tail tile
-            cur_tail->tiles = snake_tiles_empty;
-            tiles_update(cur_tail, 0xFF);
-
-            // Set the new tail tile
-            SnakeNode *new_tail = snake_advance_tail();
-            new_tail->tiles = snake_tiles_tail[new_tail->out];
-            tiles_update(new_tail, 0xFF);
-        }
+        // Set the new tail tile
+        SnakeNode *new_tail = snake_advance_tail();
+        new_tail->tiles = snake_tiles_tail[new_tail->out];
+        tiles_update(new_tail, 0xFF);
     }
 
     // Update head tiles
@@ -327,6 +324,7 @@ void main(void)
 
     uint8_t frame = 0;
     uint8_t pressedOnce = 0;
+    uint8_t lastPressed = 0;
 
     // Loop forever
     while (1)
@@ -357,31 +355,34 @@ void main(void)
         tc_reset();
 
         const uint8_t pressed = joypad();
+        if (pressed)
+        {
+            lastPressed = pressed;
+        }
+
         if (pressedOnce)
         {
+            // At frame 16 (or 0) a new cycle begins.
+            // Snake advances using the last pressed direction.
             if (frame == 16)
             {
                 frame = 0;
 
-                if (pressed & J_UP)
+                if (lastPressed & J_UP)
                 {
                     snake_update(DIRECTION_NORTH);
                 }
-                else if (pressed & J_DOWN)
+                else if (lastPressed & J_DOWN)
                 {
                     snake_update(DIRECTION_SOUTH);
                 }
-                else if (pressed & J_LEFT)
+                else if (lastPressed & J_LEFT)
                 {
                     snake_update(DIRECTION_WEST);
                 }
-                else if (pressed & J_RIGHT)
+                else if (lastPressed & J_RIGHT)
                 {
                     snake_update(DIRECTION_EAST);
-                }
-                else
-                {
-                    snake_update(DIRECTION_UNKNOWN);
                 }
             }
             else
