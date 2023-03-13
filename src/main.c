@@ -10,43 +10,9 @@
 #include "snake.h"
 #include "state.h"
 #include "tiles_copy.h"
+#include "tiles_update.h"
 #include "../res/gfx_sprites.h"
 #include "../res/gfx_background.h"
-
-// Update tile map
-// In-memory background (that handle collision) is updated immediately.
-// For VRAM update, tiles will be collected with 'tiles_copy_push' and updated during next VBLANK.
-// Use mask to specify which tiles of SnakeNode must be updated.
-// mask: [bit1][bit2]
-//       [bit3][bit4]
-void tiles_update(SnakeNode *node, uint8_t mask)
-{
-    uint16_t x = node->x;
-    uint16_t y = node->y;
-    uint16_t bkg_offset = (uint16_t)((y * BACKGROUND_WIDTH) + x);
-    uint16_t vram_offset = (uint16_t)(((y % DEVICE_SCREEN_BUFFER_HEIGHT) * DEVICE_SCREEN_BUFFER_WIDTH) + (x % DEVICE_SCREEN_BUFFER_WIDTH));
-
-    if (mask & 1)
-    {
-        background_update(bkg_offset, node->tiles[0]);
-        tiles_copy_push(vram_offset, node->tiles[0]);
-    }
-    if (mask & 2)
-    {
-        background_update(bkg_offset + 1U, node->tiles[1]);
-        tiles_copy_push(vram_offset + 1U, node->tiles[1]);
-    }
-    if (mask & 4)
-    {
-        background_update(bkg_offset + BACKGROUND_WIDTH, node->tiles[2]);
-        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
-    }
-    if (mask & 8)
-    {
-        background_update(bkg_offset + BACKGROUND_WIDTH + 1U, node->tiles[3]);
-        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
-    }
-}
 
 const uint8_t snake_tiles_empty[4] = {252, 252, 252, 252};
 
@@ -126,26 +92,25 @@ void snake_update(const uint8_t dir)
         // Alternatively, It could be implemented in snake_tick to save tiles copy.
         cur_tail->tiles -= 4U;
         // Unlock tail
-        state->tail_locked = 0U;
+        state->tail_locked--;
     }
     else
     {
-
         // Clear the previous tail tile
         cur_tail->tiles = snake_tiles_empty;
-        tiles_update(cur_tail, 0xFF);
+        tu_apply_with_visibility_check(cur_tail);
 
         // Set the new tail tile
         SnakeNode *new_tail = snake_advance_tail();
         new_tail->tiles = snake_tiles_tail[new_tail->out];
-        tiles_update(new_tail, 0xFF);
+        tu_apply_with_visibility_check(new_tail);
     }
 
     // Update head tiles
     if (cur_head->out == DIRECTION_NORTH)
     {
         cur_head->tiles = snake_tiles_dir_north[cur_head->in];
-        tiles_update(cur_head, 0xFF);
+        tu_apply(cur_head);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x;
@@ -155,12 +120,12 @@ void snake_update(const uint8_t dir)
         new_head->in = DIRECTION_NORTH;
         new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_N;
-        tiles_update(new_head, 0x0C);
+        tu_apply_with_direction(new_head, DIRECTION_NORTH);
     }
     else if (cur_head->out == DIRECTION_SOUTH)
     {
         cur_head->tiles = snake_tiles_dir_south[cur_head->in];
-        tiles_update(cur_head, 0xFF);
+        tu_apply(cur_head);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x;
@@ -170,12 +135,12 @@ void snake_update(const uint8_t dir)
         new_head->in = DIRECTION_SOUTH;
         new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_S;
-        tiles_update(new_head, 0x03);
+        tu_apply_with_direction(new_head, DIRECTION_SOUTH);
     }
     else if (cur_head->out == DIRECTION_WEST)
     {
         cur_head->tiles = snake_tiles_dir_west[cur_head->in];
-        tiles_update(cur_head, 0xFF);
+        tu_apply(cur_head);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x - 2;
@@ -185,12 +150,12 @@ void snake_update(const uint8_t dir)
         new_head->in = DIRECTION_WEST;
         new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_W;
-        tiles_update(new_head, 0x0A);
+        tu_apply_with_direction(new_head, DIRECTION_WEST);
     }
     else if (cur_head->out == DIRECTION_EAST)
     {
         cur_head->tiles = snake_tiles_dir_east[cur_head->in];
-        tiles_update(cur_head, 0xFF);
+        tu_apply(cur_head);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x + 2;
@@ -200,7 +165,7 @@ void snake_update(const uint8_t dir)
         new_head->in = DIRECTION_EAST;
         new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_E;
-        tiles_update(new_head, 0x05);
+        tu_apply_with_direction(new_head, DIRECTION_EAST);
     }
 }
 
@@ -238,10 +203,10 @@ void snake_tick(uint8_t frame)
     if (frame == 8)
     {
         tail->tiles += 4;
-        tiles_update(tail, 0xFF);
+        tu_apply_with_visibility_check(tail);
 
         head->tiles += 4;
-        tiles_update(head, 0xFF);
+        tu_apply(head);
     }
 }
 
@@ -266,7 +231,7 @@ void init_bkg_gfx()
     node->in = DIRECTION_UNKNOWN;
     node->out = DIRECTION_EAST;
     node->tiles = snake_tiles_tail_E;
-    tiles_update(node, 0xFF);
+    tu_apply(node);
 
     for (uint8_t i = 0; i < 2; i++)
     {
@@ -280,7 +245,7 @@ void init_bkg_gfx()
         node->in = DIRECTION_EAST;
         node->out = DIRECTION_EAST;
         node->tiles = snake_tiles_body_H;
-        tiles_update(node, 0xFF);
+        tu_apply(node);
     }
 
     node = snake_advance_head();
@@ -293,7 +258,7 @@ void init_bkg_gfx()
     node->in = DIRECTION_EAST;
     node->out = DIRECTION_UNKNOWN;
     node->tiles = snake_tiles_head_E;
-    tiles_update(node, 0x05);
+    tu_apply_with_direction(node, DIRECTION_EAST);
 
     // Turn the background map on to make it visible
     SHOW_BKG;

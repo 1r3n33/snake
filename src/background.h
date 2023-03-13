@@ -1,6 +1,7 @@
 #ifndef BACKGROUND_H
 #define BACKGROUND_H
 
+#include <gb/gb.h>
 #include "snake.h"
 
 #define BACKGROUND_WIDTH 64U
