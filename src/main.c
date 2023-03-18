@@ -14,7 +14,7 @@
 #include "../res/gfx_sprites.h"
 #include "../res/gfx_background.h"
 
-const uint8_t snake_tiles_empty[4] = {252, 252, 252, 252};
+const uint8_t snake_tiles_empty[4] = {124, 124, 124, 124};
 
 #define FRAME_COUNT 2
 
@@ -22,24 +22,24 @@ const uint8_t snake_tiles_empty[4] = {252, 252, 252, 252};
 //  __
 // (__ <- going W
 //
-const uint8_t snake_tiles_head_N[FRAME_COUNT * 4] = {252, 252, 128, 130, 128, 130, 240, 241};
-const uint8_t snake_tiles_head_S[FRAME_COUNT * 4] = {129, 131, 252, 252, 240, 241, 129, 131};
-const uint8_t snake_tiles_head_W[FRAME_COUNT * 4] = {252, 128, 252, 129, 128, 242, 129, 243};
-const uint8_t snake_tiles_head_E[FRAME_COUNT * 4] = {130, 252, 131, 252, 242, 130, 243, 131};
+const uint8_t snake_tiles_head_N[FRAME_COUNT * 4] = {124, 124, 192, 194, 192, 194, 176, 177};
+const uint8_t snake_tiles_head_S[FRAME_COUNT * 4] = {193, 195, 124, 124, 176, 177, 193, 195};
+const uint8_t snake_tiles_head_W[FRAME_COUNT * 4] = {124, 192, 124, 193, 192, 178, 193, 179};
+const uint8_t snake_tiles_head_E[FRAME_COUNT * 4] = {194, 124, 195, 124, 178, 194, 179, 195};
 
 // Tails are expressed in direction
 //  __
 // (__ <- going E
 //
-const uint8_t snake_tiles_tail_S[FRAME_COUNT * 4] = {128, 130, 240, 241, 252, 252, 128, 130};
-const uint8_t snake_tiles_tail_N[FRAME_COUNT * 4] = {240, 241, 129, 131, 129, 131, 252, 252};
-const uint8_t snake_tiles_tail_E[FRAME_COUNT * 4] = {128, 242, 129, 243, 252, 128, 252, 129};
-const uint8_t snake_tiles_tail_W[FRAME_COUNT * 4] = {242, 130, 243, 131, 130, 252, 131, 252};
+const uint8_t snake_tiles_tail_S[FRAME_COUNT * 4] = {192, 194, 176, 177, 124, 124, 192, 194};
+const uint8_t snake_tiles_tail_N[FRAME_COUNT * 4] = {176, 177, 193, 195, 193, 195, 124, 124};
+const uint8_t snake_tiles_tail_E[FRAME_COUNT * 4] = {192, 178, 193, 179, 124, 192, 124, 193};
+const uint8_t snake_tiles_tail_W[FRAME_COUNT * 4] = {178, 194, 179, 195, 194, 124, 195, 124};
 
 // Bodies
 //
-const uint8_t snake_tiles_body_V[FRAME_COUNT * 4] = {240, 241, 240, 241, 240, 241, 240, 241};
-const uint8_t snake_tiles_body_H[FRAME_COUNT * 4] = {242, 242, 243, 243, 242, 242, 243, 243};
+const uint8_t snake_tiles_body_V[FRAME_COUNT * 4] = {176, 177, 176, 177, 176, 177, 176, 177};
+const uint8_t snake_tiles_body_H[FRAME_COUNT * 4] = {178, 178, 179, 179, 178, 178, 179, 179};
 
 // Corners are expressed in direction
 //
@@ -49,15 +49,15 @@ const uint8_t snake_tiles_body_H[FRAME_COUNT * 4] = {242, 242, 243, 243, 242, 24
 // _ \.
 //  | |  <- This corner is both N->W and E-S
 //
-const uint8_t snake_tiles_corner_E_N[FRAME_COUNT * 4] = {250, 138, 143, 139, 250, 138, 143, 139};
-const uint8_t snake_tiles_corner_W_N[FRAME_COUNT * 4] = {136, 250, 137, 141, 136, 250, 137, 141};
-const uint8_t snake_tiles_corner_E_S[FRAME_COUNT * 4] = {142, 134, 250, 135, 142, 134, 250, 135};
-const uint8_t snake_tiles_corner_W_S[FRAME_COUNT * 4] = {132, 140, 133, 250, 132, 140, 133, 250};
+const uint8_t snake_tiles_corner_E_N[FRAME_COUNT * 4] = {190, 202, 207, 203, 190, 202, 207, 203};
+const uint8_t snake_tiles_corner_W_N[FRAME_COUNT * 4] = {200, 190, 201, 205, 200, 190, 201, 205};
+const uint8_t snake_tiles_corner_E_S[FRAME_COUNT * 4] = {206, 198, 190, 199, 206, 198, 190, 199};
+const uint8_t snake_tiles_corner_W_S[FRAME_COUNT * 4] = {196, 204, 197, 190, 196, 204, 197, 190};
 
-const uint8_t snake_tiles_corner_S_W[FRAME_COUNT * 4] = {250, 138, 143, 139, 250, 138, 143, 139};
-const uint8_t snake_tiles_corner_S_E[FRAME_COUNT * 4] = {136, 250, 137, 141, 136, 250, 137, 141};
-const uint8_t snake_tiles_corner_N_W[FRAME_COUNT * 4] = {142, 134, 250, 135, 142, 134, 250, 135};
-const uint8_t snake_tiles_corner_N_E[FRAME_COUNT * 4] = {132, 140, 133, 250, 132, 140, 133, 250};
+const uint8_t snake_tiles_corner_S_W[FRAME_COUNT * 4] = {190, 202, 207, 203, 190, 202, 207, 203};
+const uint8_t snake_tiles_corner_S_E[FRAME_COUNT * 4] = {200, 190, 201, 205, 200, 190, 201, 205};
+const uint8_t snake_tiles_corner_N_W[FRAME_COUNT * 4] = {206, 198, 190, 199, 206, 198, 190, 199};
+const uint8_t snake_tiles_corner_N_E[FRAME_COUNT * 4] = {196, 204, 197, 190, 196, 204, 197, 190};
 
 // N S W E
 // Indexed by the entering direction of the node
