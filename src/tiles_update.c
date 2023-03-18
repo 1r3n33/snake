@@ -12,16 +12,16 @@ void tu_apply(SnakeNode *node)
     uint16_t vram_offset = (uint16_t)(((y % DEVICE_SCREEN_BUFFER_HEIGHT) * DEVICE_SCREEN_BUFFER_WIDTH) + (x % DEVICE_SCREEN_BUFFER_WIDTH));
 
     background_update(bkg_offset, node->tiles[0]);
-    tiles_copy_push(vram_offset, node->tiles[0]);
+    tc_add_snake_tile(vram_offset, node->tiles[0]);
 
     background_update(bkg_offset + 1U, node->tiles[1]);
-    tiles_copy_push(vram_offset + 1U, node->tiles[1]);
+    tc_add_snake_tile(vram_offset + 1U, node->tiles[1]);
 
     background_update(bkg_offset + BACKGROUND_WIDTH, node->tiles[2]);
-    tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
+    tc_add_snake_tile(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
 
     background_update(bkg_offset + BACKGROUND_WIDTH + 1U, node->tiles[3]);
-    tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
+    tc_add_snake_tile(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
 }
 
 void tu_apply_with_visibility_check(SnakeNode *node)
@@ -46,19 +46,19 @@ void tu_apply_with_visibility_check(SnakeNode *node)
 
     background_update(bkg_offset, node->tiles[0]);
     if (visible)
-        tiles_copy_push(vram_offset, node->tiles[0]);
+        tc_add_snake_tile(vram_offset, node->tiles[0]);
 
     background_update(bkg_offset + 1U, node->tiles[1]);
     if (visible)
-        tiles_copy_push(vram_offset + 1U, node->tiles[1]);
+        tc_add_snake_tile(vram_offset + 1U, node->tiles[1]);
 
     background_update(bkg_offset + BACKGROUND_WIDTH, node->tiles[2]);
     if (visible)
-        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
+        tc_add_snake_tile(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
 
     background_update(bkg_offset + BACKGROUND_WIDTH + 1U, node->tiles[3]);
     if (visible)
-        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
+        tc_add_snake_tile(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
 }
 
 void tu_apply_with_direction(SnakeNode *node, uint8_t dir)
@@ -72,30 +72,30 @@ void tu_apply_with_direction(SnakeNode *node, uint8_t dir)
     {
     case DIRECTION_NORTH:
         background_update(bkg_offset + BACKGROUND_WIDTH, node->tiles[2]);
-        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
+        tc_add_snake_tile(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
         background_update(bkg_offset + BACKGROUND_WIDTH + 1U, node->tiles[3]);
-        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
+        tc_add_snake_tile(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
         break;
 
     case DIRECTION_SOUTH:
         background_update(bkg_offset, node->tiles[0]);
-        tiles_copy_push(vram_offset, node->tiles[0]);
+        tc_add_snake_tile(vram_offset, node->tiles[0]);
         background_update(bkg_offset + 1U, node->tiles[1]);
-        tiles_copy_push(vram_offset + 1U, node->tiles[1]);
+        tc_add_snake_tile(vram_offset + 1U, node->tiles[1]);
         break;
 
     case DIRECTION_WEST:
         background_update(bkg_offset + 1U, node->tiles[1]);
-        tiles_copy_push(vram_offset + 1U, node->tiles[1]);
+        tc_add_snake_tile(vram_offset + 1U, node->tiles[1]);
         background_update(bkg_offset + BACKGROUND_WIDTH + 1U, node->tiles[3]);
-        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
+        tc_add_snake_tile(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U, node->tiles[3]);
         break;
 
     case DIRECTION_EAST:
         background_update(bkg_offset, node->tiles[0]);
-        tiles_copy_push(vram_offset, node->tiles[0]);
+        tc_add_snake_tile(vram_offset, node->tiles[0]);
         background_update(bkg_offset + BACKGROUND_WIDTH, node->tiles[2]);
-        tiles_copy_push(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
+        tc_add_snake_tile(vram_offset + DEVICE_SCREEN_BUFFER_WIDTH, node->tiles[2]);
         break;
     }
 }

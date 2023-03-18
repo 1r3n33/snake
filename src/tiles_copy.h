@@ -6,9 +6,8 @@
 void tc_init();
 void tc_reset();
 
-void tiles_copy_push(uint16_t offset, uint8_t v);
-void tiles_copy_run();
-
+void tc_add_snake_tile(uint16_t offset, uint8_t t);
+void tc_apply_snake();
 void tc_set_row(uint8_t x, uint8_t y, uint8_t cnt);
 void tc_apply_row();
 void tc_set_column(uint8_t x, uint8_t y, uint8_t cnt);

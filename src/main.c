@@ -301,7 +301,7 @@ void main(void)
         while ((STAT_REG & 3) != 1)
             ;
 
-        tiles_copy_run();
+        tc_apply_snake();
 
         if (frame == 3 || frame == 11)
         {
