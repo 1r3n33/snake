@@ -3,7 +3,7 @@
 # subdirectories and places the output in a "obj" subdirectory
 #
 
-LCC = $(GBDK_HOME)bin/lcc 
+LCC = $(GBDK_HOME)/bin/lcc 
 
 # You can set flags for LCC here
 # For example, you can uncomment the line below to turn on debug output
