@@ -11,6 +11,7 @@
 #include "state.h"
 #include "tiles_copy.h"
 #include "tiles_update.h"
+#include "titlescreen.h"
 #include "../res/gfx_sprites.h"
 #include "../res/gfx_background.h"
 
@@ -279,6 +280,9 @@ void init_sprites_gfx()
 
 void main(void)
 {
+    titlescreen_init();
+    titlescreen_loop();
+
     state_init();
     tc_init();
 
