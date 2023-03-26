@@ -18,7 +18,7 @@ RESDIR      = res
 BINS	    = $(OBJDIR)/$(PROJECTNAME).gb
 CSOURCES    = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(RESDIR),$(notdir $(wildcard $(dir)/*.c)))
 ASMSOURCES  = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.s)))
-OBJS       = $(CSOURCES:%.c=$(OBJDIR)/%.o) $(ASMSOURCES:%.s=$(OBJDIR)/%.o)
+OBJS       = $(CSOURCES:%.c=$(OBJDIR)/%.o) $(ASMSOURCES:%.s=$(OBJDIR)/%.o) ext/hUGEDriver/obj/hUGEDriver.o
 
 LCCFLAGS += -v -Wf--opt-code-speed -Wf--max-allocs-per-node300000 -Wf--verbose -Wf--Werror -Wl-m
 

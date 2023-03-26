@@ -14,6 +14,9 @@
 #include "titlescreen.h"
 #include "../res/gfx_sprites.h"
 #include "../res/gfx_background.h"
+#include "../ext/hUGEDriver/include/hUGEDriver.h"
+
+extern const hUGESong_t sample_song;
 
 const uint8_t snake_tiles_empty[4] = {124, 124, 124, 124};
 
@@ -197,6 +200,9 @@ void snake_tick(uint8_t frame)
         while (background_check_collision(head))
         {
             eyes_ko();
+            NR52_REG = 0;
+            NR51_REG = 0;
+            NR50_REG = 0;
             wait_vbl_done();
         }
     }
@@ -295,6 +301,11 @@ void main(void)
     uint8_t pressedOnce = 0;
     uint8_t lastPressed = 0;
 
+    NR52_REG = 0x80;
+    NR51_REG = 0xFF;
+    NR50_REG = 0x77;
+    hUGE_init(&sample_song);
+
     // Loop forever
     while (1)
     {
@@ -316,6 +327,8 @@ void main(void)
             tc_apply_column();
         }
         camera_apply();
+
+        hUGE_dosound();
 
         // Wait for VBLANK to end.
         while ((STAT_REG & 3) == 1)
