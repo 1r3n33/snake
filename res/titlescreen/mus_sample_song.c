@@ -1,4 +1,4 @@
-#include "../ext/hUGEDriver/include/hUGEDriver.h"
+#include "../../ext/hUGEDriver/include/hUGEDriver.h"
 #include <stddef.h>
 
 static const unsigned char order_cnt = 68;

@@ -11,9 +11,9 @@
 #include "state.h"
 #include "tiles_copy.h"
 #include "tiles_update.h"
-#include "titlescreen.h"
-#include "../res/gfx_sprites.h"
-#include "../res/gfx_background.h"
+#include "titlescreen/titlescreen.h"
+#include "../res/level1_garden/gfx_sprites.h"
+#include "../res/level1_garden/gfx_background.h"
 #include "../ext/hUGEDriver/include/hUGEDriver.h"
 
 extern const hUGESong_t sample_song;
@@ -286,8 +286,16 @@ void init_sprites_gfx()
 
 void main(void)
 {
+    // Banking
+    ENABLE_RAM;
+
+    // Bank 1
+    // These methods are BANKED and should automatically swicth to BANK1
     titlescreen_init();
     titlescreen_loop();
+
+    // From here, activate Bank 2 that contains level 1 data
+    SWITCH_ROM(2);
 
     state_init();
     tc_init();
@@ -300,11 +308,6 @@ void main(void)
     uint8_t frame = 0;
     uint8_t pressedOnce = 0;
     uint8_t lastPressed = 0;
-
-    NR52_REG = 0x80;
-    NR51_REG = 0xFF;
-    NR50_REG = 0x77;
-    hUGE_init(&sample_song);
 
     // Loop forever
     while (1)
@@ -327,8 +330,6 @@ void main(void)
             tc_apply_column();
         }
         camera_apply();
-
-        hUGE_dosound();
 
         // Wait for VBLANK to end.
         while ((STAT_REG & 3) == 1)

@@ -1,7 +1,7 @@
 #ifndef TITLESCREEN_H
 #define TITLESCREEN_H
 
-void titlescreen_init();
-void titlescreen_loop();
+void titlescreen_init() BANKED;
+void titlescreen_loop() BANKED;
 
 #endif // TITLESCREEN_H

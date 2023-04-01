@@ -1,7 +1,7 @@
 #include <string.h>
 #include "background.h"
 #include "direction.h"
-#include "../res/gfx_garden.h"
+#include "../res/level1_garden/gfx_garden.h"
 
 // Tile ids from 128 to 255 are collidable
 #define COLLIDABLE_TILE_MASK 0x80U

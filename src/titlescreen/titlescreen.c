@@ -1,14 +1,14 @@
 #include <gb/gb.h>
 #include "titlescreen.h"
 
-#include "../ext/hUGEDriver/include/hUGEDriver.h"
+#include "../../ext/hUGEDriver/include/hUGEDriver.h"
 
-#include "../res/titlescreen_tilemap.h"
-#include "../res/titlescreen_tileset.h"
+#include "../../res/titlescreen/titlescreen_tilemap.h"
+#include "../../res/titlescreen/titlescreen_tileset.h"
 
 extern const hUGESong_t sample_song;
 
-void titlescreen_init()
+void titlescreen_init() BANKED
 {
     set_bkg_data(0, TITLESCREEN_TILESET_TILE_COUNT, TITLESCREEN_TILESET);
     set_bkg_tiles(0, 0, TITLESCREEN_TILEMAP_WIDTH, TITLESCREEN_TILEMAP_HEIGHT, TITLESCREEN_TILEMAP);
@@ -21,7 +21,7 @@ void titlescreen_init()
     hUGE_init(&sample_song);
 }
 
-void titlescreen_loop()
+void titlescreen_loop() BANKED
 {
     while (1)
     {
