@@ -6,6 +6,7 @@
 typedef struct State_t
 {
     uint8_t tail_locked;
+    uint8_t score;
 } State;
 
 void state_init();

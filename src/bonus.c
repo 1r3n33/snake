@@ -69,7 +69,9 @@ void bonus_update_visible(SnakeNode *head)
 
     if (bonus_left < head_right && bonus_right > head_left && bonus_top < head_bottom && bonus_bottom > head_top)
     {
-        state_get()->tail_locked = 2U;
+        State * state = state_get(); 
+        state->tail_locked = 2U;
+        state->score++;
         move_sprite(8, 0, 0);
         move_sprite(9, 0, 0);
         move_sprite(10, 0, 0);

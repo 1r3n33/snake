@@ -31,10 +31,6 @@ void tc_init()
     tc_col_count = 0U;
 }
 
-void tc_reset()
-{
-}
-
 void tc_add_snake_tile(uint16_t offset, uint8_t t)
 {
     Pair *p = tc_snake + tc_snake_count++;

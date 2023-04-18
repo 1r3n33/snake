@@ -1,7 +1,6 @@
 #include <string.h>
 #include "background.h"
 #include "direction.h"
-#include "../res/level1_garden/gfx_garden.h"
 
 // Tile ids from 128 to 255 are collidable
 #define COLLIDABLE_TILE_MASK 0x80U
@@ -13,10 +12,9 @@ uint8_t *background_get()
     return background;
 }
 
-// Initialize a checker background
-void background_init()
+void background_init(uint8_t *tilemap)
 {
-    memcpy(background, gfx_garden, BACKGROUND_WIDTH * BACKGROUND_HEIGHT);
+    memcpy(background, tilemap, BACKGROUND_WIDTH * BACKGROUND_HEIGHT);
 }
 
 void background_update(uint16_t offset, uint8_t v)

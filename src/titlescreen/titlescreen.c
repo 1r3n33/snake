@@ -21,13 +21,23 @@ void titlescreen_init() BANKED
     hUGE_init(&sample_song);
 }
 
-void titlescreen_loop() BANKED
+int8_t titlescreen_loop() BANKED
 {
+    int8_t res = 0;
+
     while (1)
     {
         uint8_t pressed = joypad();
         if (pressed & (J_START | J_A))
         {
+            res = 1;
+            break;
+        }
+
+        // For testing purpose.
+        if (pressed & J_SELECT)
+        {
+            res = -1;
             break;
         }
 
@@ -39,4 +49,6 @@ void titlescreen_loop() BANKED
     NR52_REG = 0;
     NR51_REG = 0;
     NR50_REG = 0;
+
+    return res;
 }

@@ -4,7 +4,6 @@
 #include <gb/gb.h>
 
 void tc_init();
-void tc_reset();
 
 void tc_add_snake_tile(uint16_t offset, uint8_t t);
 void tc_apply_snake();
