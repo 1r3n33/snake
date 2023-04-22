@@ -1,7 +1,5 @@
 #include <gb/gb.h>
 #include "level.h"
-#include "state.h"
-#include "tiles_copy.h"
 
 void main(void)
 {
@@ -10,9 +8,6 @@ void main(void)
     SPRITES_8x8;
     HIDE_BKG;
     HIDE_SPRITES;
-
-    state_init();
-    tc_init();
 
     Level *level = level_init();
     while (1)

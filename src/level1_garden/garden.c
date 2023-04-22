@@ -12,6 +12,7 @@
 #include "../game.h"
 #include "../snake.h"
 #include "../state.h"
+#include "../tiles_copy.h"
 #include "../tiles_update.h"
 
 #include "../../res/level1_garden/gfx_background.h"
@@ -31,6 +32,8 @@ void garden_init_background() BANKED
 
     background_init(gfx_garden);
     set_bkg_submap(0U, 0U, DEVICE_SCREEN_WIDTH + 1, DEVICE_SCREEN_HEIGHT + 1, background_get(), BACKGROUND_WIDTH);
+    SCX_REG = 0;
+    SCY_REG = 0;
 
     // Setup initial snake
     snake_init();
@@ -73,6 +76,10 @@ void garden_init_background() BANKED
     node->out = DIRECTION_UNKNOWN;
     node->tiles = _snake_tiles_head_E;
     tu_apply_with_direction(node, DIRECTION_EAST);
+
+    // Init camera right after the head has been set AND before initializing sprites.
+    // Sprites require camera location to be placed at the desired position.
+    camera_init(snake_get_head());
 }
 
 void garden_init_sprites() BANKED
@@ -90,13 +97,15 @@ void garden_init() BANKED
     HIDE_BKG;
     HIDE_SPRITES;
 
-    // Init background tiles and snake body
+    tc_init();
+
+    // Init background tiles, snake body and camera
     garden_init_background();
 
     // Init sprites, eyes and bonus
     garden_init_sprites();
 
-    camera_init(snake_get_head());
+    refresh_OAM();
 
     SHOW_BKG;
     SHOW_SPRITES;
