@@ -7,23 +7,15 @@
 #include "../background.h"
 #include "../bonus.h"
 #include "../camera.h"
-#include "../direction.h"
 #include "../eyes.h"
 #include "../game.h"
 #include "../snake.h"
 #include "../state.h"
 #include "../tiles_copy.h"
-#include "../tiles_update.h"
 
 #include "../../res/level1_garden/gfx_background.h"
 #include "../../res/level1_garden/gfx_garden.h"
 #include "../../res/level1_garden/gfx_sprites.h"
-
-// TODO: Remove duplicates
-#define FRAME_COUNT 2
-const uint8_t _snake_tiles_tail_E[FRAME_COUNT * 4] = {192, 178, 193, 179, 124, 192, 124, 193};
-const uint8_t _snake_tiles_body_H[FRAME_COUNT * 4] = {178, 178, 179, 179, 178, 178, 179, 179};
-const uint8_t _snake_tiles_head_E[FRAME_COUNT * 4] = {194, 124, 195, 124, 178, 194, 179, 195};
 
 void garden_init_background() BANKED
 {
@@ -35,47 +27,7 @@ void garden_init_background() BANKED
     SCX_REG = 0;
     SCY_REG = 0;
 
-    // Setup initial snake
     snake_init();
-
-    int x_pos = 2;
-
-    SnakeNode *node = snake_get_head();
-    node->x = x_pos;
-    node->y = 2;
-    node->offset_x = 0;
-    node->offset_y = 8;
-    node->in = DIRECTION_UNKNOWN;
-    node->out = DIRECTION_EAST;
-    node->tiles = _snake_tiles_tail_E;
-    tu_apply(node);
-
-    for (uint8_t i = 0; i < 2; i++)
-    {
-        node = snake_advance_head();
-        x_pos += 2;
-
-        node->x = x_pos;
-        node->y = 2;
-        node->offset_x = 0;
-        node->offset_y = 8;
-        node->in = DIRECTION_EAST;
-        node->out = DIRECTION_EAST;
-        node->tiles = _snake_tiles_body_H;
-        tu_apply(node);
-    }
-
-    node = snake_advance_head();
-    x_pos += 2;
-
-    node->x = x_pos;
-    node->y = 2;
-    node->offset_x = 0;
-    node->offset_y = 8;
-    node->in = DIRECTION_EAST;
-    node->out = DIRECTION_UNKNOWN;
-    node->tiles = _snake_tiles_head_E;
-    tu_apply_with_direction(node, DIRECTION_EAST);
 
     // Init camera right after the head has been set AND before initializing sprites.
     // Sprites require camera location to be placed at the desired position.
@@ -97,6 +49,7 @@ void garden_init() BANKED
     HIDE_BKG;
     HIDE_SPRITES;
 
+    state_init();
     tc_init();
 
     // Init background tiles, snake body and camera

@@ -24,6 +24,8 @@ typedef struct Snake
 } Snake;
 
 void snake_init();
+void snake_update(uint8_t dir);
+void snake_tick(uint8_t frame);
 SnakeNode *snake_get_head();
 SnakeNode *snake_get_tail();
 SnakeNode *snake_advance_head();
