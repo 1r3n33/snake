@@ -5,6 +5,10 @@
 // Tile ids from 128 to 255 are collidable
 #define COLLIDABLE_TILE_MASK 0x80U
 
+// Source background in ROM
+uint8_t *source;
+
+// Dynamic background in RAM (display, collision)
 uint8_t background[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
 uint8_t *background_get()
@@ -14,12 +18,20 @@ uint8_t *background_get()
 
 void background_init(uint8_t *tilemap)
 {
+    source = tilemap;
     memcpy(background, tilemap, BACKGROUND_WIDTH * BACKGROUND_HEIGHT);
 }
 
 void background_update(uint16_t offset, uint8_t v)
 {
     *(background + offset) = v;
+}
+
+uint8_t background_update_from_source(uint16_t offset)
+{
+    uint8_t source_tile_id = *(source + offset);
+    *(background + offset) = source_tile_id;
+    return source_tile_id;
 }
 
 uint8_t background_check_collision(SnakeNode *head)

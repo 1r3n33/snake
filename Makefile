@@ -34,7 +34,7 @@ BANK3_OBJS      := $(BANK3_CSOURCES:%.c=$(OBJDIR)/%.o)
 
 # Compiler
 LCC = $(GBDK_HOME)/bin/lcc
-LCCFLAGS += -v -debug -Wf--opt-code-size -Wf--max-allocs-per-node300000 -Wf--verbose -Wf--Werror -Wl-m
+LCCFLAGS += -v -debug -Wf--opt-code-speed -Wf--max-allocs-per-node300000 -Wf--verbose -Wf--Werror -Wl-m
 
 all: prepare $(BINS)
 
