@@ -17,9 +17,14 @@ inline void tu_apply_(uint8_t tile_id, uint8_t visible, uint16_t bkg_offset, uin
     }
     else
     {
-        background_update(bkg_offset, tile_id);
+        // For snake tiles with apparent background (>= 192),
+        // get the offset to the real snake tile with corresponding background.
+        uint8_t tile_id_offset = tile_id < 192 ? 0 : background_get_snake_tile_offset(bkg_offset);
+        uint8_t tile_id_to_apply = tile_id + tile_id_offset;
+
+        background_update(bkg_offset, tile_id_to_apply);
         if (visible)
-            tc_add_snake_tile(vram_offset, tile_id);
+            tc_add_snake_tile(vram_offset, tile_id_to_apply);
     }
 }
 

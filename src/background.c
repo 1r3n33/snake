@@ -8,6 +8,10 @@
 // Source background in ROM
 uint8_t *source;
 
+// Mapping table from background tile to snake tile offset (ROM).
+// This gives an offset to snake tiles with white (0), light gray (16), drak gray (32) or black (48) background.
+uint8_t *snake_tile_offsets;
+
 // Dynamic background in RAM (display, collision)
 uint8_t background[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
@@ -16,9 +20,10 @@ uint8_t *background_get()
     return background;
 }
 
-void background_init(uint8_t *tilemap)
+void background_init(uint8_t *tilemap, uint8_t *snake_tile_offsets_)
 {
     source = tilemap;
+    snake_tile_offsets = snake_tile_offsets_;
     memcpy(background, tilemap, BACKGROUND_WIDTH * BACKGROUND_HEIGHT);
 }
 
@@ -32,6 +37,12 @@ uint8_t background_update_from_source(uint16_t offset)
     uint8_t source_tile_id = *(source + offset);
     *(background + offset) = source_tile_id;
     return source_tile_id;
+}
+
+uint8_t background_get_snake_tile_offset(uint16_t offset)
+{
+    uint8_t source_tile_id = *(source + offset);
+    return snake_tile_offsets[source_tile_id];
 }
 
 uint8_t background_check_collision(SnakeNode *head)

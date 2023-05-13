@@ -13,12 +13,14 @@
 #include "../../res/level2_clouds/clouds_tilemap.h"
 #include "../../res/level2_clouds/clouds_tileset.h"
 
+const uint8_t clouds_snake_tile_offset[16] = {0, 16, 32, 48, 16, 0, 0, 16, 0, 0, 0, 16, 0, 0, 16, 0};
+
 void clouds_init_background() BANKED
 {
     // Load Background tiles and then map
     set_bkg_data(0, clouds_tilesetLen, clouds_tileset);
 
-    background_init(clouds_tilemap);
+    background_init(clouds_tilemap, clouds_snake_tile_offset);
     set_bkg_submap(0U, 0U, DEVICE_SCREEN_WIDTH + 1, DEVICE_SCREEN_HEIGHT + 1, background_get(), BACKGROUND_WIDTH);
     SCX_REG = 0;
     SCY_REG = 0;

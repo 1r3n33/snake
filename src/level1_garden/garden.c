@@ -17,12 +17,14 @@
 #include "../../res/level1_garden/gfx_garden.h"
 #include "../../res/level1_garden/gfx_sprites.h"
 
+const uint8_t garden_snake_tile_offset[128] = {0};
+
 void garden_init_background() BANKED
 {
     // Load Background tiles and then map
     set_bkg_data(0, gfx_backgroundLen, gfx_background);
 
-    background_init(gfx_garden);
+    background_init(gfx_garden, garden_snake_tile_offset);
     set_bkg_submap(0U, 0U, DEVICE_SCREEN_WIDTH + 1, DEVICE_SCREEN_HEIGHT + 1, background_get(), BACKGROUND_WIDTH);
     SCX_REG = 0;
     SCY_REG = 0;
