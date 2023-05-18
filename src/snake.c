@@ -233,13 +233,22 @@ void snake_tick(uint8_t frame)
     // Check head collision at the beginning of the 16 frames cycle.
     if (frame == 1)
     {
-        while (background_check_collision(head))
+        if (background_check_collision(head))
         {
+            State *state = state_get();
+            state->ko = 1U;
+
             eyes_ko();
             NR52_REG = 0;
             NR51_REG = 0;
             NR50_REG = 0;
-            wait_vbl_done();
+
+            while (joypad() != J_START)
+            {
+                wait_vbl_done();
+            }
+
+            return;
         }
     }
 

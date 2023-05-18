@@ -65,6 +65,11 @@ void clouds_init() BANKED
 int8_t clouds_loop_check() BANKED
 {
     State *state = state_get();
+    if (state->ko == 1)
+    {
+        return 2;
+    }
+
     if (state->score == 1)
     {
         return 1;

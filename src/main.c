@@ -1,6 +1,9 @@
 #include <gb/gb.h>
 #include "level.h"
 
+// Supress 'conditional flow changed by optimizer: so said EVELYN the modified DOG'
+#pragma disable_warning 110
+
 void main(void)
 {
     // Initial hw setup
@@ -16,13 +19,20 @@ void main(void)
         level->init();
 
         int8_t res = level->loop();
-        if (res < 0)
+        switch (res)
         {
-            level = level->prev;
-        }
-        else if (res > 0)
-        {
+        case 0:
+            // Should never happen because level->loop() should not return on 0.
+            break;
+
+        case 1:
+            // Go to the next level.
             level = level->next;
+            break;
+
+        case 2:
+            // Restart the same level.
+            break;
         }
     }
 }
