@@ -45,38 +45,13 @@ uint8_t background_get_snake_tile_offset(uint16_t offset)
     return snake_tile_offsets[source_tile_id];
 }
 
+// TODO: Factorize with background_peek_2x2
 uint8_t background_check_collision(SnakeNode *head)
 {
-    if (head->in == DIRECTION_NORTH)
-    {
-        uint8_t x = head->x;
-        uint8_t y = head->y + (head->offset_y >> 3) - 1;
-        uint8_t *dst = background + (y * BACKGROUND_WIDTH) + x;
-        return (dst[0] | dst[1]) & COLLIDABLE_TILE_MASK;
-    }
-    else if (head->in == DIRECTION_SOUTH)
-    {
-        uint8_t x = head->x;
-        uint8_t y = head->y + (head->offset_y >> 3) + 1;
-        uint8_t *dst = background + (y * BACKGROUND_WIDTH) + x;
-        return (dst[0] | dst[1]) & COLLIDABLE_TILE_MASK;
-    }
-    else if (head->in == DIRECTION_WEST)
-    {
-        uint8_t x = head->x + (head->offset_x >> 3) - 1;
-        uint8_t y = head->y;
-        uint8_t *dst = background + (y * BACKGROUND_WIDTH) + x;
-        return (dst[0] | dst[BACKGROUND_WIDTH]) & COLLIDABLE_TILE_MASK;
-    }
-    else if (head->in == DIRECTION_EAST)
-    {
-        uint8_t x = head->x + (head->offset_x >> 3) + 1;
-        uint8_t y = head->y;
-        uint8_t *dst = background + (y * BACKGROUND_WIDTH) + x;
-        return (dst[0] | dst[BACKGROUND_WIDTH]) & COLLIDABLE_TILE_MASK;
-    }
-
-    return 0;
+    uint8_t x = head->x;
+    uint8_t y = head->y;
+    uint8_t *dst = background + (y * BACKGROUND_WIDTH) + x;
+    return (dst[0] | dst[1] | dst[BACKGROUND_WIDTH] | dst[BACKGROUND_WIDTH + 1]) & COLLIDABLE_TILE_MASK;
 }
 
 uint8_t background_peek_1x1(uint8_t x, uint8_t y)

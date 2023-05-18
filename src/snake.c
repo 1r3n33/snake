@@ -76,7 +76,7 @@ void snake_init()
     node->in = DIRECTION_UNKNOWN;
     node->out = DIRECTION_EAST;
     node->tiles = snake_tiles_tail_E;
-    tu_apply(node);
+    tu_apply(node, 1U);
 
     for (uint8_t i = 0; i < 2; i++)
     {
@@ -90,7 +90,7 @@ void snake_init()
         node->in = DIRECTION_EAST;
         node->out = DIRECTION_EAST;
         node->tiles = snake_tiles_body_H;
-        tu_apply(node);
+        tu_apply(node, 1U);
     }
 
     node = snake_advance_head();
@@ -103,7 +103,7 @@ void snake_init()
     node->in = DIRECTION_EAST;
     node->out = DIRECTION_UNKNOWN;
     node->tiles = snake_tiles_head_E;
-    tu_apply_with_direction(node, DIRECTION_EAST);
+    tu_apply_with_direction(node, DIRECTION_EAST, 0U);
 }
 
 void snake_update(const uint8_t dir)
@@ -137,19 +137,19 @@ void snake_update(const uint8_t dir)
     {
         // Clear the previous tail tile
         cur_tail->tiles = snake_tiles_empty;
-        tu_apply_with_visibility_check(cur_tail);
+        tu_apply_with_visibility_check(cur_tail, 1U);
 
         // Set the new tail tile
         SnakeNode *new_tail = snake_advance_tail();
         new_tail->tiles = snake_tiles_tail[new_tail->out];
-        tu_apply_with_visibility_check(new_tail);
+        tu_apply_with_visibility_check(new_tail, 1U);
     }
 
     // Update head tiles
     if (cur_head->out == DIRECTION_NORTH)
     {
         cur_head->tiles = snake_tiles_dir_north[cur_head->in];
-        tu_apply(cur_head);
+        tu_apply(cur_head, 1U);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x;
@@ -159,12 +159,12 @@ void snake_update(const uint8_t dir)
         new_head->in = DIRECTION_NORTH;
         new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_N;
-        tu_apply_with_direction(new_head, DIRECTION_NORTH);
+        tu_apply_with_direction(new_head, DIRECTION_NORTH, 0U);
     }
     else if (cur_head->out == DIRECTION_SOUTH)
     {
         cur_head->tiles = snake_tiles_dir_south[cur_head->in];
-        tu_apply(cur_head);
+        tu_apply(cur_head, 1U);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x;
@@ -174,12 +174,12 @@ void snake_update(const uint8_t dir)
         new_head->in = DIRECTION_SOUTH;
         new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_S;
-        tu_apply_with_direction(new_head, DIRECTION_SOUTH);
+        tu_apply_with_direction(new_head, DIRECTION_SOUTH, 0U);
     }
     else if (cur_head->out == DIRECTION_WEST)
     {
         cur_head->tiles = snake_tiles_dir_west[cur_head->in];
-        tu_apply(cur_head);
+        tu_apply(cur_head, 1U);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x - 2;
@@ -189,12 +189,12 @@ void snake_update(const uint8_t dir)
         new_head->in = DIRECTION_WEST;
         new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_W;
-        tu_apply_with_direction(new_head, DIRECTION_WEST);
+        tu_apply_with_direction(new_head, DIRECTION_WEST, 0U);
     }
     else if (cur_head->out == DIRECTION_EAST)
     {
         cur_head->tiles = snake_tiles_dir_east[cur_head->in];
-        tu_apply(cur_head);
+        tu_apply(cur_head, 1U);
 
         SnakeNode *new_head = snake_advance_head();
         new_head->x = cur_head->x + 2;
@@ -204,7 +204,7 @@ void snake_update(const uint8_t dir)
         new_head->in = DIRECTION_EAST;
         new_head->out = DIRECTION_UNKNOWN;
         new_head->tiles = snake_tiles_head_E;
-        tu_apply_with_direction(new_head, DIRECTION_EAST);
+        tu_apply_with_direction(new_head, DIRECTION_EAST, 0U);
     }
 }
 
@@ -230,7 +230,8 @@ void snake_tick(uint8_t frame)
         head->offset_x++;
     }
 
-    if (frame == 7 || frame == 15) // frame & 7 == 7
+    // Check head collision at the beginning of the 16 frames cycle.
+    if (frame == 1)
     {
         while (background_check_collision(head))
         {
@@ -242,13 +243,14 @@ void snake_tick(uint8_t frame)
         }
     }
 
+    // Update tiles at the middle of the 16 frames cycle.
     if (frame == 8)
     {
         tail->tiles += 4;
-        tu_apply_with_visibility_check(tail);
+        tu_apply_with_visibility_check(tail, 1U);
 
         head->tiles += 4;
-        tu_apply(head);
+        tu_apply(head, 0U);
     }
 }
 
