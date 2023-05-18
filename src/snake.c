@@ -61,16 +61,16 @@ const uint8_t *const snake_tiles_dir_south[4] = {0, snake_tiles_body_V, snake_ti
 const uint8_t *const snake_tiles_dir_west[4] = {snake_tiles_corner_N_W, snake_tiles_corner_S_W, snake_tiles_body_H, 0};
 const uint8_t *const snake_tiles_dir_east[4] = {snake_tiles_corner_N_E, snake_tiles_corner_S_E, 0, snake_tiles_body_H};
 
-void snake_init()
+void snake_init(uint8_t x, uint8_t y)
 {
     snake.tail = snake.nodes;
     snake.head = snake.nodes;
 
-    int x_pos = 2;
+    int x_pos = x;
 
     SnakeNode *node = snake_get_head();
     node->x = x_pos;
-    node->y = 2;
+    node->y = y;
     node->offset_x = 0;
     node->offset_y = 8;
     node->in = DIRECTION_UNKNOWN;
@@ -84,7 +84,7 @@ void snake_init()
         x_pos += 2;
 
         node->x = x_pos;
-        node->y = 2;
+        node->y = y;
         node->offset_x = 0;
         node->offset_y = 8;
         node->in = DIRECTION_EAST;
@@ -97,7 +97,7 @@ void snake_init()
     x_pos += 2;
 
     node->x = x_pos;
-    node->y = 2;
+    node->y = y;
     node->offset_x = 0;
     node->offset_y = 8;
     node->in = DIRECTION_EAST;

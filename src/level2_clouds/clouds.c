@@ -25,7 +25,7 @@ void clouds_init_background() BANKED
     SCX_REG = 0;
     SCY_REG = 0;
 
-    snake_init();
+    snake_init(4, 4);
 
     // Init camera right after the head has been set AND before initializing sprites.
     // Sprites require camera location to be placed at the desired position.
