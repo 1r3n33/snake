@@ -34,7 +34,7 @@ void vblank_update(uint8_t frame)
         ;
 }
 
-int8_t game_loop(int8_t (*loop_check)(void))
+int8_t game_loop(void (*loop_update)(void), int8_t (*loop_check)(void))
 {
     uint8_t frame = 0;
     uint8_t pressedOnce = 0;
@@ -86,6 +86,9 @@ int8_t game_loop(int8_t (*loop_check)(void))
             eyes_move(head);
             bonus_update(head);
 
+            // Level specific update code
+            loop_update();
+
             frame++;
         }
         else
@@ -95,6 +98,7 @@ int8_t game_loop(int8_t (*loop_check)(void))
             frame = 1;
         }
 
+        // Level specific exit criteria check
         int8_t res = loop_check();
         if (res)
         {

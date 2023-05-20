@@ -62,6 +62,10 @@ void clouds_init() BANKED
     SHOW_SPRITES;
 }
 
+void clouds_loop_update() BANKED
+{
+}
+
 int8_t clouds_loop_check() BANKED
 {
     State *state = state_get();
@@ -80,5 +84,5 @@ int8_t clouds_loop_check() BANKED
 
 int8_t clouds_loop() BANKED
 {
-    return game_loop(clouds_loop_check);
+    return game_loop(clouds_loop_update, clouds_loop_check);
 }

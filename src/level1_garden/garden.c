@@ -3,6 +3,7 @@
 #include <gb/gb.h>
 
 #include "garden.h"
+#include "mole.h"
 
 #include "../background.h"
 #include "../bonus.h"
@@ -44,6 +45,8 @@ void garden_init_sprites() BANKED
     eyes_move(snake_get_head());
 
     bonus_init();
+
+    mole_init();
 }
 
 void garden_init() BANKED
@@ -66,6 +69,11 @@ void garden_init() BANKED
     SHOW_SPRITES;
 }
 
+void garden_loop_update() BANKED
+{
+    mole_update();
+}
+
 int8_t garden_loop_check() BANKED
 {
     State *state = state_get();
@@ -84,5 +92,5 @@ int8_t garden_loop_check() BANKED
 
 int8_t garden_loop() BANKED
 {
-    return game_loop(garden_loop_check);
+    return game_loop(garden_loop_update, garden_loop_check);
 }
