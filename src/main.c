@@ -11,6 +11,7 @@ void main(void)
     SPRITES_8x8;
     HIDE_BKG;
     HIDE_SPRITES;
+    HIDE_WIN;
 
     Level *level = level_init();
     while (1)

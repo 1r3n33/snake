@@ -12,6 +12,7 @@
 #include "../game.h"
 #include "../snake.h"
 #include "../state.h"
+#include "../text.h"
 #include "../tiles_copy.h"
 
 #include "../../res/level1_garden/gfx_background.h"
@@ -19,6 +20,19 @@
 #include "../../res/level1_garden/gfx_sprites.h"
 
 const uint8_t garden_snake_tile_offset[128] = {0};
+
+const uint8_t text_mole_intro[] = {
+    // Hello! My name is
+    90, 87, 94, 94, 97, 109, 82, 95, 107, 82, 96, 83, 95, 87, 82, 91, 101, 0,
+    // Molly...
+    95, 97, 94, 94, 107, 110, 110, 110, 0,
+    // abcdefgh
+    83, 84, 85, 86, 87, 88, 89, 90, 0,
+    // EOF
+    0
+};
+
+uint8_t garden_player_has_met_mole;
 
 void garden_init_background() BANKED
 {
@@ -53,9 +67,13 @@ void garden_init() BANKED
 {
     HIDE_BKG;
     HIDE_SPRITES;
+    HIDE_WIN;
 
     state_init();
     tc_init();
+    text_init();
+
+    garden_player_has_met_mole = 0;
 
     // Init background tiles, snake body and camera
     garden_init_background();
@@ -72,6 +90,14 @@ void garden_init() BANKED
 void garden_loop_update() BANKED
 {
     mole_update();
+
+    SnakeNode *head = snake_get_head();
+    if (garden_player_has_met_mole == 0 && head->x > 53 && head->y > 49)
+    {
+        text_show(text_mole_intro);
+        mole_hide();
+        garden_player_has_met_mole = 1;
+    }
 }
 
 int8_t garden_loop_check() BANKED

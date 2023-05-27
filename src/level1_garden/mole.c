@@ -3,6 +3,9 @@
 #include "mole.h"
 #include "../camera.h"
 
+#define MOLE_STATE_SHOW 0U
+#define MOLE_STATE_HIDE 1U
+
 typedef struct Mole
 {
     uint8_t x;
@@ -27,7 +30,7 @@ void mole_init() BANKED
 {
     mole.x = 53;
     mole.y = 52;
-    mole.state = 0;
+    mole.state = MOLE_STATE_SHOW;
     mole.timer = 255;
 
     // OBJ ids 12-27
@@ -42,6 +45,11 @@ void mole_init() BANKED
 
 void mole_update() BANKED
 {
+    if (mole.state == MOLE_STATE_HIDE)
+    {
+        return;
+    }
+
     uint16_t mole_left = mole.x * 8U;
     uint16_t mole_right = mole_left + 64U;
     uint16_t mole_top = mole.y * 8U;
@@ -93,4 +101,25 @@ void mole_update() BANKED
         move_sprite(26, 0, 0);
         move_sprite(27, 0, 0);
     }
+}
+
+void mole_hide() BANKED
+{
+    mole.state = MOLE_STATE_HIDE;
+    move_sprite(12, 0, 0);
+    move_sprite(13, 0, 0);
+    move_sprite(14, 0, 0);
+    move_sprite(15, 0, 0);
+    move_sprite(16, 0, 0);
+    move_sprite(17, 0, 0);
+    move_sprite(18, 0, 0);
+    move_sprite(19, 0, 0);
+    move_sprite(20, 0, 0);
+    move_sprite(21, 0, 0);
+    move_sprite(22, 0, 0);
+    move_sprite(23, 0, 0);
+    move_sprite(24, 0, 0);
+    move_sprite(25, 0, 0);
+    move_sprite(26, 0, 0);
+    move_sprite(27, 0, 0);
 }

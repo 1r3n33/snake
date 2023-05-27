@@ -46,6 +46,7 @@ void clouds_init() BANKED
 {
     HIDE_BKG;
     HIDE_SPRITES;
+    HIDE_WIN;
 
     state_init();
     tc_init();
