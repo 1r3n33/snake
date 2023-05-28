@@ -3,6 +3,6 @@
 
 #include <gb/gb.h>
 
-int8_t game_loop(void (*loop_update)(void), int8_t (*loop_check)(void));
+uint8_t game_loop();
 
 #endif // GAME_H

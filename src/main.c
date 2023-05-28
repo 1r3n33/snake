@@ -1,5 +1,6 @@
 #include <gb/gb.h>
 #include "level.h"
+#include "trigger.h"
 
 // Supress 'conditional flow changed by optimizer: so said EVELYN the modified DOG'
 #pragma disable_warning 110
@@ -19,20 +20,19 @@ void main(void)
         SWITCH_ROM(level->rom_id);
         level->init();
 
-        int8_t res = level->loop();
+        uint8_t res = level->loop();
         switch (res)
         {
-        case 0:
-            // Should never happen because level->loop() should not return on 0.
+        case TRIGGER_CONTINUE:
+        case TRIGGER_NEXT_TRIGGER:
+            // Should not be returned!
             break;
 
-        case 1:
-            // Go to the next level.
+        case TRIGGER_NEXT_LEVEL:
             level = level->next;
             break;
 
-        case 2:
-            // Restart the same level.
+        case TRIGGER_RESTART_LEVEL:
             break;
         }
     }

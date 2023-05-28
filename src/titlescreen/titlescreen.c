@@ -3,6 +3,7 @@
 
 #include "../state.h"
 #include "../tiles_copy.h"
+#include "../trigger.h"
 
 #include "../../ext/hUGEDriver/include/hUGEDriver.h"
 
@@ -33,23 +34,16 @@ void titlescreen_init() BANKED
     SHOW_BKG;
 }
 
-int8_t titlescreen_loop() BANKED
+uint8_t titlescreen_loop() BANKED
 {
-    int8_t res = 0;
+    int8_t res = TRIGGER_CONTINUE;
 
     while (1)
     {
         uint8_t pressed = joypad();
         if (pressed & (J_START | J_A))
         {
-            res = 1;
-            break;
-        }
-
-        // For testing purpose.
-        if (pressed & J_SELECT)
-        {
-            res = -1;
+            res = TRIGGER_NEXT_LEVEL;
             break;
         }
 

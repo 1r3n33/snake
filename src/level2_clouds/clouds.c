@@ -8,12 +8,32 @@
 #include "../game.h"
 #include "../snake.h"
 #include "../state.h"
+#include "../text.h"
 #include "../tiles_copy.h"
+#include "../trigger.h"
 
 #include "../../res/level2_clouds/clouds_tilemap.h"
 #include "../../res/level2_clouds/clouds_tileset.h"
 
 const uint8_t clouds_snake_tile_offset[16] = {0, 16, 32, 48, 16, 0, 0, 16, 0, 0, 0, 16, 0, 0, 16, 0};
+
+Trigger trig_clouds;
+
+uint8_t fn_clouds() BANKED
+{
+    State *state = state_get();
+    if (state->ko == 1)
+    {
+        return TRIGGER_RESTART_LEVEL;
+    }
+
+    if (state->score == 1)
+    {
+        return TRIGGER_NEXT_LEVEL;
+    }
+
+    return TRIGGER_CONTINUE;
+}
 
 void clouds_init_background() BANKED
 {
@@ -50,6 +70,11 @@ void clouds_init() BANKED
 
     state_init();
     tc_init();
+    text_init();
+
+    trig_clouds.check = fn_clouds;
+    trig_clouds.next = 0;
+    trigger_init(&trig_clouds);
 
     // Init background tiles and snake body
     clouds_init_background();
@@ -61,29 +86,4 @@ void clouds_init() BANKED
 
     SHOW_BKG;
     SHOW_SPRITES;
-}
-
-void clouds_loop_update() BANKED
-{
-}
-
-int8_t clouds_loop_check() BANKED
-{
-    State *state = state_get();
-    if (state->ko == 1)
-    {
-        return 2;
-    }
-
-    if (state->score == 1)
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-int8_t clouds_loop() BANKED
-{
-    return game_loop(clouds_loop_update, clouds_loop_check);
 }

@@ -4,6 +4,12 @@
 #include "snake.h"
 #include "tiles_copy.h"
 
+// Supress 'conditional flow changed by optimizer: so said EVELYN the modified DOG'
+#pragma disable_warning 110
+
+#define CAMERA_TARGET_SNAKE 0U
+#define CAMERA_TARGET_XY 1U
+
 Camera cam;
 
 // N S W E
@@ -17,6 +23,9 @@ Camera *camera_get()
 
 void camera_init(SnakeNode *head)
 {
+    cam.target = CAMERA_TARGET_SNAKE;
+    cam.tx = 0;
+    cam.ty = 0;
     cam.cx = ((uint16_t)head->x * 8U) + head->offset_x + CAM_INIT_OFFSET_X[head->in];
     cam.cy = ((uint16_t)head->y * 8U) + head->offset_y + CAM_INIT_OFFSET_Y[head->in];
     cam.sx = 0;
@@ -27,20 +36,17 @@ void camera_init(SnakeNode *head)
     cam.lrtb[3] = DEVICE_SCREEN_HEIGHT;
 }
 
-void camera_move(SnakeNode *head)
+void camera_move_to_target()
 {
     uint8_t lrtb[4];
 
-    // Get target
-    uint16_t tx = ((uint16_t)head->x * 8U) + head->offset_x;
-
     // Get direction
     int8_t delta_x = 0;
-    if (tx > cam.cx)
+    if (cam.tx > cam.cx)
     {
         delta_x++;
     }
-    else if (tx < cam.cx)
+    else if (cam.tx < cam.cx)
     {
         delta_x--;
     }
@@ -67,16 +73,13 @@ void camera_move(SnakeNode *head)
     uint8_t right = ((cam.sx + (DEVICE_SCREEN_WIDTH * 8) - 1) / 8) + 1;
     lrtb[1] = (right > BACKGROUND_WIDTH - 1) ? BACKGROUND_WIDTH - 1 : right;
 
-    // Get target
-    uint16_t ty = ((uint16_t)head->y * 8U) + head->offset_y;
-
     // Get direction
     int8_t delta_y = 0;
-    if (ty > cam.cy)
+    if (cam.ty > cam.cy)
     {
         delta_y++;
     }
-    else if (ty < cam.cy)
+    else if (cam.ty < cam.cy)
     {
         delta_y--;
     }
@@ -128,8 +131,40 @@ void camera_move(SnakeNode *head)
     cam.lrtb[3] = lrtb[3];
 }
 
+void camera_move(SnakeNode *head)
+{
+    switch (cam.target)
+    {
+    case CAMERA_TARGET_SNAKE:
+        cam.tx = ((uint16_t)head->x * 8U) + head->offset_x;
+        cam.ty = ((uint16_t)head->y * 8U) + head->offset_y;
+        break;
+
+    case CAMERA_TARGET_XY:
+        // Must be already set
+        break;
+    }
+
+    camera_move_to_target();
+}
+
+// TODO: Only done in vblank_update. Move it there, remove the function.
 void camera_apply()
 {
     SCX_REG = cam.sx;
     SCY_REG = cam.sy;
+}
+
+void camera_set_snake_target(SnakeNode *head)
+{
+    cam.target = CAMERA_TARGET_SNAKE;
+    cam.tx = ((uint16_t)head->x * 8U) + head->offset_x;
+    cam.ty = ((uint16_t)head->y * 8U) + head->offset_y;
+}
+
+void camera_set_xy_target(uint16_t tx, uint16_t ty)
+{
+    cam.target = CAMERA_TARGET_XY;
+    cam.tx = tx;
+    cam.ty = ty;
 }

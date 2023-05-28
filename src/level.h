@@ -7,7 +7,7 @@ typedef struct Level
 {
     uint8_t rom_id;
     void (*init)(void);
-    int8_t (*loop)(void);
+    uint8_t (*loop)(void);
     struct Level *prev;
     struct Level *next;
 } Level;

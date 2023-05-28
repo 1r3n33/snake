@@ -7,6 +7,7 @@
 #include "game.h"
 #include "snake.h"
 #include "tiles_copy.h"
+#include "trigger.h"
 
 void vblank_update(uint8_t frame)
 {
@@ -34,8 +35,10 @@ void vblank_update(uint8_t frame)
         ;
 }
 
-int8_t game_loop(void (*loop_update)(void), int8_t (*loop_check)(void))
+uint8_t game_loop()
 {
+    uint8_t res = TRIGGER_CONTINUE;
+
     uint8_t frame = 0;
     uint8_t pressedOnce = 0;
     uint8_t lastPressed = 0;
@@ -52,8 +55,8 @@ int8_t game_loop(void (*loop_update)(void), int8_t (*loop_check)(void))
 
         if (pressedOnce)
         {
-            // At frame 16 (or 0) a new cycle begins.
-            // Snake advances using the last pressed direction.
+                // At frame 16 (or 0) a new cycle begins.
+                // Snake advances using the last pressed direction.
             if (frame == 16)
             {
                 frame = 0;
@@ -86,8 +89,7 @@ int8_t game_loop(void (*loop_update)(void), int8_t (*loop_check)(void))
             eyes_move(head);
             bonus_update(head);
 
-            // Level specific update code
-            loop_update();
+            res = trigger_update();
 
             frame++;
         }
@@ -98,9 +100,7 @@ int8_t game_loop(void (*loop_update)(void), int8_t (*loop_check)(void))
             frame = 1;
         }
 
-        // Level specific exit criteria check
-        int8_t res = loop_check();
-        if (res)
+        if (res != TRIGGER_CONTINUE)
         {
             return res;
         }

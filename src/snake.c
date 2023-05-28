@@ -63,6 +63,7 @@ const uint8_t *const snake_tiles_dir_east[4] = {snake_tiles_corner_N_E, snake_ti
 
 void snake_init(uint8_t x, uint8_t y)
 {
+    snake.status = SNAKE_STATUS_ENABLED;
     snake.tail = snake.nodes;
     snake.head = snake.nodes;
 
@@ -108,6 +109,28 @@ void snake_init(uint8_t x, uint8_t y)
 
 void snake_update(const uint8_t dir)
 {
+    if (snake.status == SNAKE_STATUS_DISABLED)
+    {
+        return;
+    }
+
+    if (snake.status == SNAKE_STATUS_SYNC_FRAME)
+    {
+        // Enable if the new frame is the next frame.
+        // snake_update always happens at frame 0 of the 16 frames cycle.
+        if (snake.frame != 15)
+        {
+            return;
+        }
+        else
+        {
+            snake.status = SNAKE_STATUS_ENABLED;
+        }
+    }
+
+    // snake_update always happens at frame 0 of the 16 frames cycle.
+    snake.frame = 0;
+
     SnakeNode *cur_head = snake_get_head();
 
     // Assign new direction
@@ -210,6 +233,26 @@ void snake_update(const uint8_t dir)
 
 void snake_tick(uint8_t frame)
 {
+    if (snake.status == SNAKE_STATUS_DISABLED)
+    {
+        return;
+    }
+
+    if (snake.status == SNAKE_STATUS_SYNC_FRAME)
+    {
+        // Enable if the new frame is the next frame. 
+        if (snake.frame != (frame - 1U))
+        {
+            return;
+        }
+        else
+        {
+            snake.status = SNAKE_STATUS_ENABLED;
+        }
+    }
+
+    snake.frame = frame;
+
     SnakeNode *tail = snake_get_tail();
     SnakeNode *head = snake_get_head();
 
@@ -291,4 +334,9 @@ SnakeNode *snake_advance_tail()
         snake.tail = snake.nodes;
     }
     return snake.tail;
+}
+
+void snake_enable_update(uint8_t enabled)
+{
+    snake.status = enabled ? SNAKE_STATUS_SYNC_FRAME : SNAKE_STATUS_DISABLED;
 }

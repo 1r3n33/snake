@@ -16,11 +16,17 @@ typedef struct SnakeNode
 
 #define SNAKE_BUFFER_CAPACITY 64 // must be of power of two
 
+#define SNAKE_STATUS_DISABLED 0U   // No update/tick
+#define SNAKE_STATUS_SYNC_FRAME 1U // Transitioning from disable to enable, wait for the correct frame.
+#define SNAKE_STATUS_ENABLED 2U    // update/tick enabled
+
 typedef struct Snake
 {
     SnakeNode nodes[SNAKE_BUFFER_CAPACITY];
     SnakeNode *head;
     SnakeNode *tail;
+    uint8_t status;
+    uint8_t frame;
 } Snake;
 
 void snake_init(uint8_t x, uint8_t y);
@@ -30,5 +36,7 @@ SnakeNode *snake_get_head();
 SnakeNode *snake_get_tail();
 SnakeNode *snake_advance_head();
 SnakeNode *snake_advance_tail();
+
+void snake_enable_update(uint8_t enabled);
 
 #endif // SNAKE_H
