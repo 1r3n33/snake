@@ -15,6 +15,10 @@ typedef struct Bonus
     uint8_t y;
     uint8_t state;
     uint8_t timer;
+    uint8_t spawnzone_top;    // rectangle where bonus can spawn
+    uint8_t spawnzone_bottom; //
+    uint8_t spawnzone_left;   //
+    uint8_t spawnzone_right;  //
 } Bonus;
 
 Bonus bonus;
@@ -25,6 +29,11 @@ void bonus_init()
     bonus.y = 8;
     bonus.state = BONUS_STATE_INVISIBLE;
     bonus.timer = 255;
+    bonus_set_spawn_zone_rect(
+        BACKGROUND_SAFE_ZONE_TOP,
+        BACKGROUND_SAFE_ZONE_BOTTOM,
+        BACKGROUND_SAFE_ZONE_LEFT,
+        BACKGROUND_SAFE_ZONE_RIGHT);
 
     set_sprite_tile(8, 32);
     set_sprite_tile(9, 33);
@@ -43,8 +52,10 @@ void bonus_update_invisible()
 
 void bonus_update_spawning()
 {
-    uint8_t x = BACKGROUND_SAFE_ZONE_LEFT + (rand() % (BACKGROUND_SAFE_ZONE_RIGHT - BACKGROUND_SAFE_ZONE_LEFT));
-    uint8_t y = BACKGROUND_SAFE_ZONE_TOP + (rand() % (BACKGROUND_SAFE_ZONE_BOTTOM - BACKGROUND_SAFE_ZONE_TOP));
+    // TODO: Small optimization by pre-computing right-left and bottom-top
+    uint8_t x = bonus.spawnzone_left + (rand() % (bonus.spawnzone_right - bonus.spawnzone_left));
+    uint8_t y = bonus.spawnzone_top + (rand() % (bonus.spawnzone_bottom - bonus.spawnzone_top));
+
     // Could we just use background_peek_1x1 if x and y were multiple of 2?
     if (!background_peek_2x2(x, y))
     {
@@ -69,7 +80,7 @@ void bonus_update_visible(SnakeNode *head)
 
     if (bonus_left < head_right && bonus_right > head_left && bonus_top < head_bottom && bonus_bottom > head_top)
     {
-        State * state = state_get(); 
+        State *state = state_get();
         state->tail_locked = 2U;
         state->score++;
         move_sprite(8, 0, 0);
@@ -141,4 +152,12 @@ void bonus_update(SnakeNode *head)
         bonus_update_visible(head);
         break;
     }
+}
+
+void bonus_set_spawn_zone_rect(uint8_t top, uint8_t bottom, uint8_t left, uint8_t right)
+{
+    bonus.spawnzone_top = top;
+    bonus.spawnzone_bottom = bottom;
+    bonus.spawnzone_left = left;
+    bonus.spawnzone_right = right;
 }

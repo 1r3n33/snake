@@ -49,6 +49,7 @@ Trigger trig_collect_apples;
 uint8_t fn_mole_visit_1() BANKED
 {
     mole_update();
+    bonus_set_spawn_zone_rect(0, 0, 0, 0);
 
     State *state = state_get();
     if (state->ko == 1)
@@ -101,6 +102,8 @@ uint8_t fn_mole_end_dialog_1() BANKED
 
 uint8_t fn_collect_apples() BANKED
 {
+    bonus_set_spawn_zone_rect(4, 32, 4, 50);
+
     State *state = state_get();
     if (state->ko == 1)
     {
