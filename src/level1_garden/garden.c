@@ -27,29 +27,45 @@ const uint8_t text_mole_intro[] = {
     90, 87, 94, 94, 97, 109, 82, 95, 107, 82, 96, 83, 95, 87, 82, 91, 101, 0,
     // Molly...
     95, 97, 94, 94, 107, 110, 110, 110, 0,
-    // It's lunch time
-    91, 102, 111, 101, 82, 94, 103, 96, 85, 90, 82, 102, 91, 95, 87, 0,
-    // and I'm hungry!
-    83, 96, 86, 82, 91, 111, 95, 82, 90, 103, 96, 89, 100, 107, 109, 0,
-    // Please bring 5
-    98, 94, 87, 83, 101, 87, 82, 84, 100, 91, 96, 89, 82, 77, 0,
-    // apples to me.
-    83, 98, 98, 94, 87, 101, 82, 102, 97, 82, 95, 87, 110, 0,
-    // Thank you!
-    102, 90, 83, 96, 93, 82, 107, 97, 103, 109, 0,
+    // If you bring me
+    91, 88, 82, 107, 97, 103, 82, 84, 100, 91, 96, 89, 82, 95, 87, 0,
+    // 5 apples...
+    77, 82, 83, 98, 98, 94, 87, 101, 110, 110, 110, 0,
+    // I'll show you
+    91, 111, 94, 94, 82, 101, 90, 97, 105, 82, 107, 97, 103, 0,
+    // the exit!
+    102, 90, 87, 82, 87, 106, 91, 102, 109, 0,
+    // Good luck!
+    89, 97, 97, 86, 82, 94, 103, 85, 93, 109, 0,
     // EOF
-    0};
+    0
+};
+
+const uint8_t text_mole_pass[] = {
+    // Hey! Thank you
+    90, 87, 107, 109, 82, 102, 90, 83, 96, 93, 82, 107, 97, 103, 0,
+    // so much...
+    101, 97, 82, 95, 103, 85, 90, 110, 110, 110, 0,
+    // Follow me
+    88, 97, 94, 94, 97, 105, 82, 95, 87, 0,
+    // underground!
+    103, 96, 86, 87, 100, 89, 100, 97, 103, 96, 86, 109, 0,
+    // EOF
+    0
+};
 
 // Meet with the mole, to activate apples collection.
 Trigger trig_mole_visit_1;
 Trigger trig_mole_begin_dialog_1;
 Trigger trig_mole_end_dialog_1;
 Trigger trig_collect_apples;
+Trigger trig_mole_visit_2;
+Trigger trig_mole_begin_dialog_2;
+Trigger trig_mole_end_dialog_2;
 
-uint8_t fn_mole_visit_1() BANKED
+uint8_t fn_mole_visit() BANKED
 {
     mole_update();
-    bonus_set_spawn_zone_rect(0, 0, 0, 0);
 
     State *state = state_get();
     if (state->ko == 1)
@@ -69,14 +85,14 @@ uint8_t fn_mole_visit_1() BANKED
     return TRIGGER_CONTINUE;
 }
 
-uint8_t fn_mole_begin_dialog_1() BANKED
+uint8_t fn_mole_begin_dialog(const char *text) BANKED
 {
     mole_update();
 
     Camera *cam = camera_get();
     if (cam->cx == cam->tx && cam->cy == cam->ty)
     {
-        text_show(text_mole_intro);
+        text_show(text);
         mole_hide();
 
         SnakeNode *head = snake_get_head();
@@ -88,12 +104,23 @@ uint8_t fn_mole_begin_dialog_1() BANKED
     return TRIGGER_CONTINUE;
 }
 
-uint8_t fn_mole_end_dialog_1() BANKED
+uint8_t fn_mole_begin_dialog_1() BANKED
+{
+    return fn_mole_begin_dialog(text_mole_intro);
+}
+
+uint8_t fn_mole_begin_dialog_2() BANKED
+{
+    return fn_mole_begin_dialog(text_mole_pass);
+}
+
+uint8_t fn_mole_end_dialog() BANKED
 {
     Camera *cam = camera_get();
     if (cam->cx == cam->tx && cam->cy == cam->ty)
     {
         snake_enable_update(1);
+        bonus_set_spawn_zone_rect(4, 32, 4, 50);
         return TRIGGER_NEXT_TRIGGER;
     }
 
@@ -102,8 +129,6 @@ uint8_t fn_mole_end_dialog_1() BANKED
 
 uint8_t fn_collect_apples() BANKED
 {
-    bonus_set_spawn_zone_rect(4, 32, 4, 50);
-
     State *state = state_get();
     if (state->ko == 1)
     {
@@ -112,6 +137,7 @@ uint8_t fn_collect_apples() BANKED
 
     if (state->score == 5)
     {
+        mole_show();
         return TRIGGER_NEXT_TRIGGER;
     }
 
@@ -157,14 +183,20 @@ void garden_init() BANKED
     tc_init();
     text_init();
 
-    trig_mole_visit_1.check = fn_mole_visit_1;
+    trig_mole_visit_1.check = fn_mole_visit;
     trig_mole_visit_1.next = &trig_mole_begin_dialog_1;
     trig_mole_begin_dialog_1.check = fn_mole_begin_dialog_1;
     trig_mole_begin_dialog_1.next = &trig_mole_end_dialog_1;
-    trig_mole_end_dialog_1.check = fn_mole_end_dialog_1;
+    trig_mole_end_dialog_1.check = fn_mole_end_dialog;
     trig_mole_end_dialog_1.next = &trig_collect_apples;
     trig_collect_apples.check = fn_collect_apples;
-    trig_collect_apples.next = 0;
+    trig_collect_apples.next = &trig_mole_visit_2;
+    trig_mole_visit_2.check = fn_mole_visit;
+    trig_mole_visit_2.next = &trig_mole_begin_dialog_2;
+    trig_mole_begin_dialog_2.check = fn_mole_begin_dialog_2;
+    trig_mole_begin_dialog_2.next = &trig_mole_end_dialog_2;
+    trig_mole_end_dialog_2.check = fn_mole_end_dialog;
+    trig_mole_end_dialog_2.next = 0;
     trigger_init(&trig_mole_visit_1);
 
     // Init background tiles, snake body and camera
@@ -172,6 +204,9 @@ void garden_init() BANKED
 
     // Init sprites, eyes and bonus
     garden_init_sprites();
+
+    // No bonus spawn at the beginning
+    bonus_set_spawn_zone_rect(0, 0, 0, 0);
 
     refresh_OAM();
 

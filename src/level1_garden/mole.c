@@ -123,3 +123,9 @@ void mole_hide() BANKED
     move_sprite(26, 0, 0);
     move_sprite(27, 0, 0);
 }
+
+void mole_show() BANKED
+{
+    mole.state = MOLE_STATE_SHOW;
+    mole_update();
+}
