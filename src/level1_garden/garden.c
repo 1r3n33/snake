@@ -38,8 +38,7 @@ const uint8_t text_mole_intro[] = {
     // Good luck!
     89, 97, 97, 86, 82, 94, 103, 85, 93, 109, 0,
     // EOF
-    0
-};
+    0};
 
 const uint8_t text_mole_pass[] = {
     // Hey! Thank you
@@ -51,8 +50,7 @@ const uint8_t text_mole_pass[] = {
     // underground!
     103, 96, 86, 87, 100, 89, 100, 97, 103, 96, 86, 109, 0,
     // EOF
-    0
-};
+    0};
 
 // Meet with the mole, to activate apples collection.
 Trigger trig_mole_visit_1;
@@ -62,6 +60,7 @@ Trigger trig_collect_apples;
 Trigger trig_mole_visit_2;
 Trigger trig_mole_begin_dialog_2;
 Trigger trig_mole_end_dialog_2;
+Trigger trig_mole_enter_hole;
 
 uint8_t fn_mole_visit() BANKED
 {
@@ -111,7 +110,34 @@ uint8_t fn_mole_begin_dialog_1() BANKED
 
 uint8_t fn_mole_begin_dialog_2() BANKED
 {
-    return fn_mole_begin_dialog(text_mole_pass);
+    uint8_t res = fn_mole_begin_dialog(text_mole_pass);
+
+    // When dialog is over, remove the grid from the hole.
+    if (res == TRIGGER_NEXT_TRIGGER)
+    {
+        uint16_t bkg_offset = (uint16_t)((54 * BACKGROUND_WIDTH) + 54);
+        background_update(bkg_offset + 0, 11);
+        background_update(bkg_offset + 1, 12);
+        background_update(bkg_offset + BACKGROUND_WIDTH + 0, 15);
+        background_update(bkg_offset + BACKGROUND_WIDTH + 1, 16);
+
+        uint16_t vram_offset = (uint16_t)(((54 % DEVICE_SCREEN_BUFFER_HEIGHT) * DEVICE_SCREEN_BUFFER_WIDTH) + (54 % DEVICE_SCREEN_BUFFER_WIDTH));
+
+        // Wait for VBLANK to get access to the VRAM.
+        while ((STAT_REG & 3) != 1)
+            ;
+
+        *((uint8_t *)0x9800U + vram_offset + 0) = 11;
+        *((uint8_t *)0x9800U + vram_offset + 1) = 12;
+        *((uint8_t *)0x9800U + vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 0) = 15;
+        *((uint8_t *)0x9800U + vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1) = 16;
+
+        // Wait for VBLANK to end.
+        while ((STAT_REG & 3) == 1)
+            ;
+    }
+
+    return res;
 }
 
 uint8_t fn_mole_end_dialog() BANKED
@@ -138,6 +164,23 @@ uint8_t fn_collect_apples() BANKED
     if (state->score == 5)
     {
         mole_show();
+        return TRIGGER_NEXT_TRIGGER;
+    }
+
+    return TRIGGER_CONTINUE;
+}
+
+uint8_t fn_enter_hole() BANKED
+{
+    State *state = state_get();
+    if (state->ko == 1)
+    {
+        return TRIGGER_RESTART_LEVEL;
+    }
+
+    SnakeNode *head = snake_get_head();
+    if (head->x == 54 && head->y == 54)
+    {
         return TRIGGER_NEXT_TRIGGER;
     }
 
@@ -196,7 +239,10 @@ void garden_init() BANKED
     trig_mole_begin_dialog_2.check = fn_mole_begin_dialog_2;
     trig_mole_begin_dialog_2.next = &trig_mole_end_dialog_2;
     trig_mole_end_dialog_2.check = fn_mole_end_dialog;
-    trig_mole_end_dialog_2.next = 0;
+    trig_mole_end_dialog_2.next = &trig_mole_enter_hole;
+    trig_mole_enter_hole.check = fn_enter_hole;
+    trig_mole_enter_hole.next = 0;
+
     trigger_init(&trig_mole_visit_1);
 
     // Init background tiles, snake body and camera
