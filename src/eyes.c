@@ -3,17 +3,27 @@
 #include "eyes.h"
 #include "snake.h"
 
+#define EYES_STATE_HIDE 0U
+#define EYES_STATE_SHOW 1U
+
+typedef struct Eyes
+{
+    uint8_t state;
+} Eyes;
+
+Eyes eyes;
+
 void eyes_init()
 {
     set_sprite_tile(0, 24);
     set_sprite_tile(1, 25);
     set_sprite_tile(2, 26);
     set_sprite_tile(3, 27);
-
     set_sprite_tile(4, 24);
     set_sprite_tile(5, 25);
     set_sprite_tile(6, 26);
     set_sprite_tile(7, 27);
+    eyes_show();
 }
 
 #define SUPPRESS_UNDERFLOW(x) ((256U + (x)) & 0xFFU)
@@ -116,20 +126,36 @@ const uint8_t SPRITE7_Y_OFFSET[4] = {
     DEVICE_SPRITE_PX_OFFSET_Y + 6U,
 };
 
-void eyes_move(SnakeNode *head)
+void eyes_update()
 {
-    Camera *cam = camera_get();
-    uint8_t cx = ((head->x * 8U) + head->offset_x) - (cam->sx % 256U);
-    uint8_t cy = ((head->y * 8U) + head->offset_y) - (cam->sy % 256U);
+    if (eyes.state == EYES_STATE_HIDE)
+    {
+        move_sprite(0, 0, 0);
+        move_sprite(1, 0, 0);
+        move_sprite(2, 0, 0);
+        move_sprite(3, 0, 0);
+        move_sprite(4, 0, 0);
+        move_sprite(5, 0, 0);
+        move_sprite(6, 0, 0);
+        move_sprite(7, 0, 0);
+    }
+    else
+    {
+        SnakeNode *head = snake_get_head();
 
-    move_sprite(0, cx + SPRITE0_X_OFFSET[head->in], cy + SPRITE0_Y_OFFSET[head->in]);
-    move_sprite(1, cx + SPRITE1_X_OFFSET[head->in], cy + SPRITE1_Y_OFFSET[head->in]);
-    move_sprite(2, cx + SPRITE2_X_OFFSET[head->in], cy + SPRITE2_Y_OFFSET[head->in]);
-    move_sprite(3, cx + SPRITE3_X_OFFSET[head->in], cy + SPRITE3_Y_OFFSET[head->in]);
-    move_sprite(4, cx + SPRITE4_X_OFFSET[head->in], cy + SPRITE4_Y_OFFSET[head->in]);
-    move_sprite(5, cx + SPRITE5_X_OFFSET[head->in], cy + SPRITE5_Y_OFFSET[head->in]);
-    move_sprite(6, cx + SPRITE6_X_OFFSET[head->in], cy + SPRITE6_Y_OFFSET[head->in]);
-    move_sprite(7, cx + SPRITE7_X_OFFSET[head->in], cy + SPRITE7_Y_OFFSET[head->in]);
+        Camera *cam = camera_get();
+        uint8_t cx = ((head->x * 8U) + head->offset_x) - (cam->sx % 256U);
+        uint8_t cy = ((head->y * 8U) + head->offset_y) - (cam->sy % 256U);
+
+        move_sprite(0, cx + SPRITE0_X_OFFSET[head->in], cy + SPRITE0_Y_OFFSET[head->in]);
+        move_sprite(1, cx + SPRITE1_X_OFFSET[head->in], cy + SPRITE1_Y_OFFSET[head->in]);
+        move_sprite(2, cx + SPRITE2_X_OFFSET[head->in], cy + SPRITE2_Y_OFFSET[head->in]);
+        move_sprite(3, cx + SPRITE3_X_OFFSET[head->in], cy + SPRITE3_Y_OFFSET[head->in]);
+        move_sprite(4, cx + SPRITE4_X_OFFSET[head->in], cy + SPRITE4_Y_OFFSET[head->in]);
+        move_sprite(5, cx + SPRITE5_X_OFFSET[head->in], cy + SPRITE5_Y_OFFSET[head->in]);
+        move_sprite(6, cx + SPRITE6_X_OFFSET[head->in], cy + SPRITE6_Y_OFFSET[head->in]);
+        move_sprite(7, cx + SPRITE7_X_OFFSET[head->in], cy + SPRITE7_Y_OFFSET[head->in]);
+    }
 }
 
 void eyes_ko()
@@ -138,9 +164,20 @@ void eyes_ko()
     set_sprite_tile(1, 29);
     set_sprite_tile(2, 30);
     set_sprite_tile(3, 31);
-
     set_sprite_tile(4, 28);
     set_sprite_tile(5, 29);
     set_sprite_tile(6, 30);
     set_sprite_tile(7, 31);
+}
+
+void eyes_show()
+{
+    eyes.state = EYES_STATE_SHOW;
+    eyes_update();
+}
+
+void eyes_hide()
+{
+    eyes.state = EYES_STATE_HIDE;
+    eyes_update();
 }

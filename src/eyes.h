@@ -5,7 +5,9 @@
 #include "snake.h"
 
 void eyes_init();
-void eyes_move(SnakeNode *head);
+void eyes_update();
 void eyes_ko();
+void eyes_show();
+void eyes_hide();
 
 #endif // EYES_H

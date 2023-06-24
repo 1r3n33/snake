@@ -209,7 +209,6 @@ void garden_init_sprites() BANKED
     set_sprite_data(0, gfx_spritesLen, gfx_sprites);
 
     eyes_init();
-    eyes_move(snake_get_head());
 
     bonus_init();
 

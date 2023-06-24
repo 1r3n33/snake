@@ -86,7 +86,7 @@ uint8_t game_loop()
             SnakeNode *head = snake_get_head();
 
             camera_move(head);
-            eyes_move(head);
+            eyes_update();
             bonus_update(head);
 
             res = trigger_update();
