@@ -20,7 +20,10 @@
 #include "../../res/level1_garden/gfx_garden.h"
 #include "../../res/level1_garden/gfx_sprites.h"
 
-const uint8_t garden_snake_tile_offset[128] = {0};
+const uint8_t garden_snake_tile_offset[128] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x30, 0x30, 0x00, 0x00, 0x30, 0x30,
+    0x00, 0x00, 0x00, 0x00, 0x30, 0x30, 0x30, 0x30};
 
 const uint8_t text_mole_intro[] = {
     // Hello! My name is
@@ -181,7 +184,10 @@ uint8_t fn_enter_hole() BANKED
     SnakeNode *head = snake_get_head();
     if (head->x == 54 && head->y == 54)
     {
-        return TRIGGER_NEXT_TRIGGER;
+        eyes_hide();
+        snake_lock_head(255U);
+
+        return snake_length() > 0 ? TRIGGER_CONTINUE : TRIGGER_NEXT_TRIGGER;
     }
 
     return TRIGGER_CONTINUE;

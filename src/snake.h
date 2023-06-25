@@ -26,6 +26,8 @@ typedef struct Snake
     SnakeNode *head;
     SnakeNode *tail;
     uint8_t status;
+    uint8_t tail_locked; // lock tail update (snake grows)
+    uint8_t head_locked; // lock head update (snake shrinks)
     uint8_t frame;
 } Snake;
 
@@ -37,6 +39,11 @@ SnakeNode *snake_get_tail();
 SnakeNode *snake_advance_head();
 SnakeNode *snake_advance_tail();
 
+void snake_lock_tail(uint8_t count); // Lock the tail for 'count' 16-frames cycles.
+void snake_lock_head(uint8_t count); // Lock the head for 'count' 16-frames cycles.
+
 void snake_enable_update(uint8_t enabled);
+
+uint8_t snake_length();
 
 #endif // SNAKE_H

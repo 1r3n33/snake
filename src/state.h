@@ -5,7 +5,6 @@
 
 typedef struct State_t
 {
-    uint8_t tail_locked;
     uint8_t score;
     uint8_t ko;
 } State;

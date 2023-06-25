@@ -66,6 +66,9 @@ void snake_init(uint8_t x, uint8_t y)
     snake.status = SNAKE_STATUS_ENABLED;
     snake.tail = snake.nodes;
     snake.head = snake.nodes;
+    snake.tail_locked = 0U;
+    snake.head_locked = 0U;
+    snake.frame = 0U;
 
     int x_pos = x;
 
@@ -144,17 +147,16 @@ void snake_update(const uint8_t dir)
     }
 
     // Update tail tiles
-    State *state = state_get();
     SnakeNode *cur_tail = snake_get_tail();
 
     // Do not shrink if the tail is locked
-    if (state->tail_locked)
+    if (snake.tail_locked)
     {
         // Rewind the tiles pointer so next snake_tick will look the same.
         // Alternatively, It could be implemented in snake_tick to save tiles copy.
         cur_tail->tiles -= 4U;
         // Unlock tail
-        state->tail_locked--;
+        snake.tail_locked--;
     }
     else
     {
@@ -169,65 +171,77 @@ void snake_update(const uint8_t dir)
     }
 
     // Update head tiles
-    if (cur_head->out == DIRECTION_NORTH)
+    // Do not grow if the head is locked
+    if (snake.head_locked)
     {
-        cur_head->tiles = snake_tiles_dir_north[cur_head->in];
-        tu_apply(cur_head, 1U);
-
-        SnakeNode *new_head = snake_advance_head();
-        new_head->x = cur_head->x;
-        new_head->y = cur_head->y - 2;
-        new_head->offset_x = 8;
-        new_head->offset_y = 15;
-        new_head->in = DIRECTION_NORTH;
-        new_head->out = DIRECTION_UNKNOWN;
-        new_head->tiles = snake_tiles_head_N;
-        tu_apply_with_direction(new_head, DIRECTION_NORTH, 0U);
+        // Rewind the tiles pointer so next snake_tick will look the same.
+        // Alternatively, It could be implemented in snake_tick to save tiles copy.
+        cur_head->tiles -= 4U;
+        // Unlock head
+        snake.head_locked--;
     }
-    else if (cur_head->out == DIRECTION_SOUTH)
+    else
     {
-        cur_head->tiles = snake_tiles_dir_south[cur_head->in];
-        tu_apply(cur_head, 1U);
+        if (cur_head->out == DIRECTION_NORTH)
+        {
+            cur_head->tiles = snake_tiles_dir_north[cur_head->in];
+            tu_apply(cur_head, 1U);
 
-        SnakeNode *new_head = snake_advance_head();
-        new_head->x = cur_head->x;
-        new_head->y = cur_head->y + 2;
-        new_head->offset_x = 8;
-        new_head->offset_y = 0;
-        new_head->in = DIRECTION_SOUTH;
-        new_head->out = DIRECTION_UNKNOWN;
-        new_head->tiles = snake_tiles_head_S;
-        tu_apply_with_direction(new_head, DIRECTION_SOUTH, 0U);
-    }
-    else if (cur_head->out == DIRECTION_WEST)
-    {
-        cur_head->tiles = snake_tiles_dir_west[cur_head->in];
-        tu_apply(cur_head, 1U);
+            SnakeNode *new_head = snake_advance_head();
+            new_head->x = cur_head->x;
+            new_head->y = cur_head->y - 2;
+            new_head->offset_x = 8;
+            new_head->offset_y = 15;
+            new_head->in = DIRECTION_NORTH;
+            new_head->out = DIRECTION_UNKNOWN;
+            new_head->tiles = snake_tiles_head_N;
+            tu_apply_with_direction(new_head, DIRECTION_NORTH, 0U);
+        }
+        else if (cur_head->out == DIRECTION_SOUTH)
+        {
+            cur_head->tiles = snake_tiles_dir_south[cur_head->in];
+            tu_apply(cur_head, 1U);
 
-        SnakeNode *new_head = snake_advance_head();
-        new_head->x = cur_head->x - 2;
-        new_head->y = cur_head->y;
-        new_head->offset_x = 15;
-        new_head->offset_y = 8;
-        new_head->in = DIRECTION_WEST;
-        new_head->out = DIRECTION_UNKNOWN;
-        new_head->tiles = snake_tiles_head_W;
-        tu_apply_with_direction(new_head, DIRECTION_WEST, 0U);
-    }
-    else if (cur_head->out == DIRECTION_EAST)
-    {
-        cur_head->tiles = snake_tiles_dir_east[cur_head->in];
-        tu_apply(cur_head, 1U);
+            SnakeNode *new_head = snake_advance_head();
+            new_head->x = cur_head->x;
+            new_head->y = cur_head->y + 2;
+            new_head->offset_x = 8;
+            new_head->offset_y = 0;
+            new_head->in = DIRECTION_SOUTH;
+            new_head->out = DIRECTION_UNKNOWN;
+            new_head->tiles = snake_tiles_head_S;
+            tu_apply_with_direction(new_head, DIRECTION_SOUTH, 0U);
+        }
+        else if (cur_head->out == DIRECTION_WEST)
+        {
+            cur_head->tiles = snake_tiles_dir_west[cur_head->in];
+            tu_apply(cur_head, 1U);
 
-        SnakeNode *new_head = snake_advance_head();
-        new_head->x = cur_head->x + 2;
-        new_head->y = cur_head->y;
-        new_head->offset_x = 0;
-        new_head->offset_y = 8;
-        new_head->in = DIRECTION_EAST;
-        new_head->out = DIRECTION_UNKNOWN;
-        new_head->tiles = snake_tiles_head_E;
-        tu_apply_with_direction(new_head, DIRECTION_EAST, 0U);
+            SnakeNode *new_head = snake_advance_head();
+            new_head->x = cur_head->x - 2;
+            new_head->y = cur_head->y;
+            new_head->offset_x = 15;
+            new_head->offset_y = 8;
+            new_head->in = DIRECTION_WEST;
+            new_head->out = DIRECTION_UNKNOWN;
+            new_head->tiles = snake_tiles_head_W;
+            tu_apply_with_direction(new_head, DIRECTION_WEST, 0U);
+        }
+        else if (cur_head->out == DIRECTION_EAST)
+        {
+            cur_head->tiles = snake_tiles_dir_east[cur_head->in];
+            tu_apply(cur_head, 1U);
+
+            SnakeNode *new_head = snake_advance_head();
+            new_head->x = cur_head->x + 2;
+            new_head->y = cur_head->y;
+            new_head->offset_x = 0;
+            new_head->offset_y = 8;
+            new_head->in = DIRECTION_EAST;
+            new_head->out = DIRECTION_UNKNOWN;
+            new_head->tiles = snake_tiles_head_E;
+            tu_apply_with_direction(new_head, DIRECTION_EAST, 0U);
+        }
     }
 }
 
@@ -240,7 +254,7 @@ void snake_tick(uint8_t frame)
 
     if (snake.status == SNAKE_STATUS_SYNC_FRAME)
     {
-        // Enable if the new frame is the next frame. 
+        // Enable if the new frame is the next frame.
         if (snake.frame != (frame - 1U))
         {
             return;
@@ -256,21 +270,24 @@ void snake_tick(uint8_t frame)
     SnakeNode *tail = snake_get_tail();
     SnakeNode *head = snake_get_head();
 
-    if (head->in == DIRECTION_NORTH)
+    if (!snake.head_locked)
     {
-        head->offset_y--;
-    }
-    else if (head->in == DIRECTION_SOUTH)
-    {
-        head->offset_y++;
-    }
-    else if (head->in == DIRECTION_WEST)
-    {
-        head->offset_x--;
-    }
-    else if (head->in == DIRECTION_EAST)
-    {
-        head->offset_x++;
+        if (head->in == DIRECTION_NORTH)
+        {
+            head->offset_y--;
+        }
+        else if (head->in == DIRECTION_SOUTH)
+        {
+            head->offset_y++;
+        }
+        else if (head->in == DIRECTION_WEST)
+        {
+            head->offset_x--;
+        }
+        else if (head->in == DIRECTION_EAST)
+        {
+            head->offset_x++;
+        }
     }
 
     // Check head collision at the beginning of the 16 frames cycle.
@@ -339,4 +356,19 @@ SnakeNode *snake_advance_tail()
 void snake_enable_update(uint8_t enabled)
 {
     snake.status = enabled ? SNAKE_STATUS_SYNC_FRAME : SNAKE_STATUS_DISABLED;
+}
+
+void snake_lock_tail(uint8_t count) // Lock the tail for 'count' 16-frames cycles.
+{
+    snake.tail_locked = count;
+}
+
+void snake_lock_head(uint8_t count) // Lock the head for 'count' 16-frames cycles.
+{
+    snake.head_locked = count;
+}
+
+uint8_t snake_length()
+{
+    return snake.head - snake.tail;
 }

@@ -4,7 +4,6 @@ State state;
 
 void state_init()
 {
-    state.tail_locked = 0;
     state.score = 0;
     state.ko = 0;
 }
