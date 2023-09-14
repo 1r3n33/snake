@@ -32,6 +32,12 @@ BANK3_RESDIR    := $(RESDIR)/level2_clouds
 BANK3_CSOURCES  := $(foreach dir,$(BANK3_SRCDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(BANK3_RESDIR),$(notdir $(wildcard $(dir)/*.c)))
 BANK3_OBJS      := $(BANK3_CSOURCES:%.c=$(OBJDIR)/%.o)
 
+# Bank 4: Level 3: Underground
+BANK4_SRCDIR    := $(SRCDIR)/level3_underground
+BANK4_RESDIR    := $(RESDIR)/level3_underground
+BANK4_CSOURCES  := $(foreach dir,$(BANK4_SRCDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(BANK4_RESDIR),$(notdir $(wildcard $(dir)/*.c)))
+BANK4_OBJS      := $(BANK4_CSOURCES:%.c=$(OBJDIR)/%.o)
+
 # Compiler
 LCC = $(GBDK_HOME)/bin/lcc
 LCCFLAGS += -v -debug -Wf--opt-code-speed -Wf--max-allocs-per-node300000 -Wf--verbose -Wf--Werror -Wl-m
@@ -75,9 +81,15 @@ $(OBJDIR)/%.o: $(BANK3_SRCDIR)/%.c
 $(OBJDIR)/%.o: $(BANK3_RESDIR)/%.c
 	$(LCC) $(LCCFLAGS) -c -o $@ $<
 
+# Bank 4
+$(OBJDIR)/%.o: $(BANK4_SRCDIR)/%.c
+	$(LCC) $(LCCFLAGS) -c -o $@ $<
+$(OBJDIR)/%.o: $(BANK4_RESDIR)/%.c
+	$(LCC) $(LCCFLAGS) -c -o $@ $<
+
 # Link the compiled object files into a .gb ROM file
-$(BINS): $(OBJS) $(BANK1_OBJS) $(BANK2_OBJS) $(BANK3_OBJS)
-	$(LCC) $(LCCFLAGS) -Wl-yt0x1A -Wl-yo4 -Wl-ya4 -o $@ $(OBJS) $(BANK1_OBJS) $(BANK2_OBJS) $(BANK3_OBJS)
+$(BINS): $(OBJS) $(BANK1_OBJS) $(BANK2_OBJS) $(BANK3_OBJS) $(BANK4_OBJS)
+	$(LCC) $(LCCFLAGS) -Wl-yt0x1A -Wl-yo8 -Wl-ya4 -o $@ $(OBJS) $(BANK1_OBJS) $(BANK2_OBJS) $(BANK3_OBJS) $(BANK4_OBJS)
 
 prepare:
 	mkdir -p $(OBJDIR)
