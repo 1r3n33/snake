@@ -5,9 +5,18 @@
 #include "direction.h"
 #include "eyes.h"
 #include "game.h"
+#include "projectile.h"
 #include "snake.h"
 #include "tiles_copy.h"
 #include "trigger.h"
+
+void action_update(uint8_t pressed)
+{
+    if (pressed & J_A)
+    {
+        projectile_spawn();
+    }
+}
 
 void vblank_update(uint8_t frame)
 {
@@ -55,8 +64,10 @@ uint8_t game_loop()
 
         if (pressedOnce)
         {
-                // At frame 16 (or 0) a new cycle begins.
-                // Snake advances using the last pressed direction.
+            SnakeNode *head = snake_get_head();
+
+            // At frame 16 (or 0) a new cycle begins.
+            // Snake advances using the last pressed direction.
             if (frame == 16)
             {
                 frame = 0;
@@ -77,17 +88,22 @@ uint8_t game_loop()
                 {
                     snake_update(DIRECTION_EAST);
                 }
+                else
+                {
+                    // If no direction is pressed, keep the current one.
+                    snake_update(head->in);
+                }
             }
             else
             {
                 snake_tick(frame);
             }
-
-            SnakeNode *head = snake_get_head();
+            action_update(pressed);
 
             camera_move(head);
             eyes_update();
             bonus_update(head);
+            projectile_update_all();
 
             res = trigger_update();
 

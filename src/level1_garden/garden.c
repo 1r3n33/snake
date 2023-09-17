@@ -10,6 +10,7 @@
 #include "../camera.h"
 #include "../eyes.h"
 #include "../game.h"
+#include "../projectile.h"
 #include "../snake.h"
 #include "../state.h"
 #include "../text.h"
@@ -217,6 +218,8 @@ void garden_init_sprites() BANKED
     eyes_init();
 
     bonus_init();
+
+    projectile_init_all();
 
     mole_init();
 }
