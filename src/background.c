@@ -48,10 +48,15 @@ uint8_t background_get_snake_tile_offset(uint16_t offset)
 // TODO: Factorize with background_peek_2x2
 uint8_t background_check_collision(SnakeNode *head)
 {
+#if 0
+    (void)head;
+    return 0;
+#else
     uint8_t x = head->x;
     uint8_t y = head->y;
     uint8_t *dst = background + (y * BACKGROUND_WIDTH) + x;
     return (dst[0] | dst[1] | dst[BACKGROUND_WIDTH] | dst[BACKGROUND_WIDTH + 1]) & COLLIDABLE_TILE_MASK;
+#endif
 }
 
 uint8_t background_peek_1x1(uint8_t x, uint8_t y)

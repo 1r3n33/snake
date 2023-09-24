@@ -8,7 +8,7 @@
 
 #define PROJECTILE_SPAWN_DELAY 30U // in frames
 
-#define PROJECTILE_SPEED 2 // px/frame
+#define PROJECTILE_SPEED 4 // px/frame
 
 typedef struct Projectile
 {
@@ -72,8 +72,8 @@ void projectile_update(const uint8_t id)
 
         // Check collision against background.
         // Resolve background tile using the center of the sprite.
-        uint8_t cx = (p->x + 4U)/8U;
-        uint8_t cy = (p->y + 4U)/8U;
+        uint8_t cx = (p->x + 4U) / 8U;
+        uint8_t cy = (p->y + 4U) / 8U;
         if (background_peek_1x1(cx, cy))
         {
             p->state = 0U;
@@ -134,4 +134,27 @@ void projectile_spawn()
             break;
         }
     }
+}
+
+// Return after the fisrt valid collision...
+uint8_t projectile_check_collision(const uint16_t top, const uint16_t left, const uint16_t bottom, const uint16_t right)
+{
+    for (uint8_t id = 0U; id < PROJECTILE_MAX_COUNT; id++)
+    {
+        Projectile *p = projectiles + id;
+        if (p->state)
+        {
+            uint16_t proj_left = p->x;
+            uint16_t proj_right = p->x + 8U;
+            uint16_t proj_top = p->y;
+            uint16_t proj_bottom = p->y + 8U;
+
+            if (proj_left < right && proj_right > left && proj_top < bottom && proj_bottom > top)
+            {
+                p->state = 0;
+                return 1;
+            }
+        }
+    }
+    return 0;
 }

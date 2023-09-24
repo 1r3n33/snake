@@ -1,5 +1,6 @@
 #pragma bank 4
 #include <gb/gb.h>
+#include "spider.h"
 #include "underground.h"
 #include "../background.h"
 #include "../bonus.h"
@@ -22,6 +23,8 @@ Trigger trig_underground;
 
 uint8_t fn_underground() BANKED
 {
+    spider_update_all();
+
     State *state = state_get();
     if (state->ko == 1)
     {
@@ -63,6 +66,9 @@ void underground_init_sprites() BANKED
     bonus_init();
 
     projectile_init_all();
+
+    spider_init_all();
+    spider_spawn(30U, 80U);
 }
 
 void underground_init() BANKED
