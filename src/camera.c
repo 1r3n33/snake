@@ -21,19 +21,60 @@ Camera *camera_get()
     return &cam;
 }
 
-void camera_init(SnakeNode *head)
+// The camera is centered on the head node
+void camera_init()
 {
+    SnakeNode *head = snake_get_head();
+
     cam.target = CAMERA_TARGET_SNAKE;
-    cam.tx = 0;
-    cam.ty = 0;
-    cam.cx = ((uint16_t)head->x * 8U) + head->offset_x + CAM_INIT_OFFSET_X[head->in];
-    cam.cy = ((uint16_t)head->y * 8U) + head->offset_y + CAM_INIT_OFFSET_Y[head->in];
-    cam.sx = 0;
-    cam.sy = 0;
-    cam.lrtb[0] = 0;
-    cam.lrtb[1] = DEVICE_SCREEN_WIDTH;
-    cam.lrtb[2] = 0;
-    cam.lrtb[3] = DEVICE_SCREEN_HEIGHT;
+
+    cam.tx = ((uint16_t)head->x * 8U) + head->offset_x;
+    cam.ty = ((uint16_t)head->y * 8U) + head->offset_y;
+
+    // Initial center offset to start by catching up the target
+    cam.cx = cam.tx + CAM_INIT_OFFSET_X[head->in];
+    cam.cy = cam.ty + CAM_INIT_OFFSET_Y[head->in];
+
+    if (cam.cx < (DEVICE_SCREEN_PX_WIDTH / 2U))
+    {
+        cam.sx = 0U;
+    }
+    else if (cam.cx > ((BACKGROUND_WIDTH * 8U) - (DEVICE_SCREEN_PX_WIDTH / 2U)))
+    {
+        cam.sx = (BACKGROUND_WIDTH * 8U) - DEVICE_SCREEN_PX_WIDTH;
+    }
+    else
+    {
+        cam.sx = cam.cx - (DEVICE_SCREEN_PX_WIDTH / 2U);
+    }
+
+    if (cam.cy < (DEVICE_SCREEN_PX_HEIGHT / 2U))
+    {
+        cam.sy = 0U;
+    }
+    else if (cam.cy > ((BACKGROUND_HEIGHT * 8U) - (DEVICE_SCREEN_PX_HEIGHT / 2U)))
+    {
+        cam.sy = (BACKGROUND_HEIGHT * 8U) - DEVICE_SCREEN_PX_HEIGHT;
+    }
+    else
+    {
+        cam.sy = cam.cy - (DEVICE_SCREEN_PX_HEIGHT / 2U);
+    }
+
+    int8_t left = (cam.sx / 8) - 1;
+    cam.lrtb[0] = (left < 0) ? 0 : left;
+    uint8_t right = ((cam.sx + (DEVICE_SCREEN_WIDTH * 8) - 1) / 8) + 1;
+    cam.lrtb[1] = (right > BACKGROUND_WIDTH - 1) ? BACKGROUND_WIDTH - 1 : right;
+
+    int8_t top = (cam.sy / 8) - 1;
+    cam.lrtb[2] = (top < 0) ? 0 : top;
+    uint8_t bottom = ((cam.sy + (DEVICE_SCREEN_HEIGHT * 8) - 1) / 8) + 1;
+    cam.lrtb[3] = (bottom > BACKGROUND_HEIGHT - 1) ? BACKGROUND_HEIGHT - 1 : bottom;
+
+    set_bkg_submap(cam.lrtb[0], cam.lrtb[2], (cam.lrtb[1] - cam.lrtb[0]) + 1U, (cam.lrtb[3] - cam.lrtb[2]) + 1U, background_get(), BACKGROUND_WIDTH);
+
+    SCX_REG = cam.sx;
+    SCY_REG = cam.sy;
 }
 
 void camera_move_to_target()
@@ -54,7 +95,6 @@ void camera_move_to_target()
     // Move camera center closer to the target
     cam.cx += delta_x;
 
-    // Compute  scroll register value
     if (cam.cx < (DEVICE_SCREEN_PX_WIDTH / 2U))
     {
         cam.sx = 0U;

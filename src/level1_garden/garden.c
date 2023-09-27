@@ -200,15 +200,12 @@ void garden_init_background() BANKED
     set_bkg_data(0, gfx_backgroundLen, gfx_background);
 
     background_init(gfx_garden, garden_snake_tile_offset);
-    set_bkg_submap(0U, 0U, DEVICE_SCREEN_WIDTH + 1, DEVICE_SCREEN_HEIGHT + 1, background_get(), BACKGROUND_WIDTH);
-    SCX_REG = 0;
-    SCY_REG = 0;
 
     snake_init(4, 8);
 
     // Init camera right after the head has been set AND before initializing sprites.
     // Sprites require camera location to be placed at the desired position.
-    camera_init(snake_get_head());
+    camera_init();
 }
 
 void garden_init_sprites() BANKED

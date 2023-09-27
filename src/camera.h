@@ -18,7 +18,7 @@ typedef struct Camera
 } Camera;
 
 Camera *camera_get();
-void camera_init(SnakeNode *head);
+void camera_init();
 void camera_move(SnakeNode *head);
 void camera_apply();
 
