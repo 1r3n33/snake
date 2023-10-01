@@ -31,7 +31,7 @@ typedef struct Snake
     uint8_t frame;
 } Snake;
 
-void snake_init(uint8_t x, uint8_t y);
+void snake_init(uint8_t x, uint8_t y, uint8_t *direction, uint8_t length);
 void snake_update(uint8_t dir);
 void snake_tick(uint8_t frame);
 SnakeNode *snake_get_head();

@@ -85,6 +85,9 @@ void tu_apply_with_visibility_check(SnakeNode *node, uint8_t update_bkg)
     tu_apply_(node->tiles[3], update_bkg, visible, bkg_offset + BACKGROUND_WIDTH + 1U, vram_offset + DEVICE_SCREEN_BUFFER_WIDTH + 1U);
 }
 
+// TODO: Remove dir parameter as it seems to always be node->in
+// TODO: Remove update_bkg parameter as it seeems to always be 0
+// TODO: Rename tu_apply_head
 void tu_apply_with_direction(SnakeNode *node, uint8_t dir, uint8_t update_bkg)
 {
     uint16_t x = node->x;

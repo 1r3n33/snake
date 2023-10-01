@@ -5,6 +5,7 @@
 #include "../background.h"
 #include "../bonus.h"
 #include "../camera.h"
+#include "../direction.h"
 #include "../eyes.h"
 #include "../game.h"
 #include "../projectile.h"
@@ -47,7 +48,8 @@ void underground_init_background() BANKED
 
     background_init(underground_tilemap, underground_snake_tile_offset);
 
-    snake_init(4, 4);
+    const uint8_t dirs[] = {DIRECTION_SOUTH, DIRECTION_SOUTH, DIRECTION_WEST, DIRECTION_WEST, DIRECTION_WEST};
+    snake_init(56, 50, dirs, sizeof(dirs));
 
     // Init camera right after the head has been set AND before initializing sprites.
     // Sprites require camera location to be placed at the desired position.

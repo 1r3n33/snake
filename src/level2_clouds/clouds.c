@@ -4,6 +4,7 @@
 #include "../background.h"
 #include "../bonus.h"
 #include "../camera.h"
+#include "../direction.h"
 #include "../eyes.h"
 #include "../game.h"
 #include "../projectile.h"
@@ -43,7 +44,8 @@ void clouds_init_background() BANKED
 
     background_init(clouds_tilemap, clouds_snake_tile_offset);
 
-    snake_init(4, 4);
+    const uint8_t dirs[] = {DIRECTION_EAST, DIRECTION_SOUTH, DIRECTION_EAST, DIRECTION_NORTH, DIRECTION_NORTH, DIRECTION_EAST, DIRECTION_SOUTH, DIRECTION_EAST, DIRECTION_EAST};
+    snake_init(4, 8, dirs, sizeof(dirs));
 
     // Init camera right after the head has been set AND before initializing sprites.
     // Sprites require camera location to be placed at the desired position.

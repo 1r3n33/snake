@@ -4,6 +4,7 @@
 #include "eyes.h"
 #include "snake.h"
 #include "state.h"
+#include "tiles_copy.h"
 #include "tiles_update.h"
 
 Snake snake;
@@ -56,12 +57,27 @@ const uint8_t snake_tiles_corner_N_E[FRAME_COUNT * 4] = {196, 204, 197, 190, 196
 // N S W E
 // Indexed by the entering direction of the node
 const uint8_t *const snake_tiles_tail[4] = {snake_tiles_tail_N, snake_tiles_tail_S, snake_tiles_tail_W, snake_tiles_tail_E};
+const uint8_t *const snake_tiles_head[4] = {snake_tiles_head_N, snake_tiles_head_S, snake_tiles_head_W, snake_tiles_head_E};
 const uint8_t *const snake_tiles_dir_north[4] = {snake_tiles_body_V, 0, snake_tiles_corner_W_N, snake_tiles_corner_E_N};
 const uint8_t *const snake_tiles_dir_south[4] = {0, snake_tiles_body_V, snake_tiles_corner_W_S, snake_tiles_corner_E_S};
 const uint8_t *const snake_tiles_dir_west[4] = {snake_tiles_corner_N_W, snake_tiles_corner_S_W, snake_tiles_body_H, 0};
 const uint8_t *const snake_tiles_dir_east[4] = {snake_tiles_corner_N_E, snake_tiles_corner_S_E, 0, snake_tiles_body_H};
 
-void snake_init(uint8_t x, uint8_t y)
+const uint8_t snake_offsets_x[4] = {8U, 8U, 15U, 0U};
+const uint8_t snake_offsets_y[4] = {15U, 0U, 8U, 8U};
+const int8_t snake_dx[4] = {0, 0, -2, 2};
+const int8_t snake_dy[4] = {-2, 2, 0, 0};
+
+const uint8_t *const snake_tiles_matrix[4][4] = {
+    {snake_tiles_body_V, 0, snake_tiles_corner_W_N, snake_tiles_corner_E_N}, // NN, NS, NW, NE
+    {0, snake_tiles_body_V, snake_tiles_corner_W_S, snake_tiles_corner_E_S}, // SN, SS, SW, SE
+    {snake_tiles_corner_N_W, snake_tiles_corner_S_W, snake_tiles_body_H, 0}, // WN, WS, WW, WE
+    {snake_tiles_corner_N_E, snake_tiles_corner_S_E, 0, snake_tiles_body_H}  // EN, ES, EW, EE
+};
+
+// x & y are the tail location
+// length is the length of the 'direction' array (must be >1)
+void snake_init(uint8_t x, uint8_t y, uint8_t *direction, uint8_t length)
 {
     snake.status = SNAKE_STATUS_ENABLED;
     snake.tail = snake.nodes;
@@ -70,46 +86,55 @@ void snake_init(uint8_t x, uint8_t y)
     snake.head_locked = 0U;
     snake.frame = 0U;
 
-    int x_pos = x;
-
     SnakeNode *node = snake_get_head();
-    node->x = x_pos;
+    node->x = x;
     node->y = y;
-    node->offset_x = 0;
-    node->offset_y = 8;
+    node->offset_x = snake_offsets_x[direction[0]];
+    node->offset_y = snake_offsets_y[direction[0]];
     node->in = DIRECTION_UNKNOWN;
-    node->out = DIRECTION_EAST;
-    node->tiles = snake_tiles_tail_E;
-    tu_apply(node, 1U);
+    node->out = direction[0];
+    node->tiles = snake_tiles_tail[direction[0]];
+    tu_apply(node, 1U); // Copy tiles to RAM background.
+    tc_apply_snake();   // Flush tiles to VRAM to keep buffer clean for first loop frame.
+    x += snake_dx[direction[0]];
+    y += snake_dy[direction[0]];
 
-    for (uint8_t i = 0; i < 2; i++)
+    uint8_t i = 0U;
+    while (i < (length - 1U))
     {
-        node = snake_advance_head();
-        x_pos += 2;
+        const uint8_t in = direction[i++];
+        const uint8_t out = direction[i];
 
-        node->x = x_pos;
+        node = snake_advance_head();
+        node->x = x;
         node->y = y;
-        node->offset_x = 0;
-        node->offset_y = 8;
-        node->in = DIRECTION_EAST;
-        node->out = DIRECTION_EAST;
-        node->tiles = snake_tiles_body_H;
-        tu_apply(node, 1U);
+        node->offset_x = snake_offsets_x[in];
+        node->offset_y = snake_offsets_y[in];
+        node->in = in;
+        node->out = out;
+        node->tiles = snake_tiles_matrix[out][in];
+        tu_apply(node, 1U); // Copy tiles to RAM background.
+        tc_apply_snake();   // Flush tiles to VRAM to keep buffer clean for first loop frame.
+        x += snake_dx[out];
+        y += snake_dy[out];
     }
 
     node = snake_advance_head();
-    x_pos += 2;
-
-    node->x = x_pos;
+    node->x = x;
     node->y = y;
-    node->offset_x = 0;
-    node->offset_y = 8;
-    node->in = DIRECTION_EAST;
+    node->offset_x = snake_offsets_x[direction[i]];
+    node->offset_y = snake_offsets_y[direction[i]];
+    node->in = direction[i];
     node->out = DIRECTION_UNKNOWN;
-    node->tiles = snake_tiles_head_E;
-    tu_apply_with_direction(node, DIRECTION_EAST, 0U);
+    node->tiles = snake_tiles_head[direction[i]];
+    tu_apply_with_direction(node, direction[i], 0U); // Don't copy tiles to RAM background to avoid head self collision.
+    // No flush to VRAM here:
+    // Camera init will follow and copy the RAM background to VRAM background.
+    // But head tiles were not copied to RAM background to avoid self collision.
+    // Leave to the VBlank function the responsibility to copy head tiles to VRAM.
 }
 
+// TODO: Simplify code by reusing snake_ arrays
 void snake_update(const uint8_t dir)
 {
     if (snake.status == SNAKE_STATUS_DISABLED)
