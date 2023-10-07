@@ -2,14 +2,15 @@
 #include "camera.h"
 #include "background.h"
 #include "direction.h"
+#include "graphics.h"
 #include "tiles_copy.h"
 
 //
 // Apply a snake tile on both RAM (for collision) and VRAM (for graphics).
 //
 // - tile_id:
-//      Id of the source tile. Can be fully transparent (124).
-//      If the source tile has apparent background (>=192) then get an offset from the destination background tile to select the final id to apply.
+//      Id of the source tile. Can be fully transparent (GFX_EMPTY_TILE_ID).
+//      If the source tile has apparent background (>=GFX_OFFSET_CAPABLE_TILE_ID) then get an offset from the destination background tile to select the final id to apply.
 // - update_bkg:
 //      Used to not update RAM for the head. The tile at the head location must not be overwritten.
 //      Because we check collisions against head location, we do not want the head to collide with itself.
@@ -26,7 +27,7 @@
 inline void tu_apply_(uint8_t tile_id, uint8_t update_bkg, uint8_t visible, uint16_t bkg_offset, uint16_t vram_offset)
 {
     // Check tile is transparent (Ok to update anyway when the tile is transparent).
-    if (tile_id == 124)
+    if (tile_id == GFX_EMPTY_TILE_ID)
     {
         uint8_t source_tile_id = background_update_from_source(bkg_offset);
         if (visible)
@@ -34,9 +35,9 @@ inline void tu_apply_(uint8_t tile_id, uint8_t update_bkg, uint8_t visible, uint
     }
     else
     {
-        // For snake tiles with apparent background (>= 192),
+        // For snake tiles with apparent background (>= GFX_OFFSET_CAPABLE_TILE_ID),
         // get the offset to the real snake tile with corresponding background.
-        uint8_t tile_id_offset = tile_id < 192 ? 0 : background_get_snake_tile_offset(bkg_offset);
+        uint8_t tile_id_offset = tile_id < GFX_OFFSET_CAPABLE_TILE_ID ? 0 : background_get_snake_tile_offset(bkg_offset);
         uint8_t tile_id_to_apply = tile_id + tile_id_offset;
 
         if (update_bkg)
