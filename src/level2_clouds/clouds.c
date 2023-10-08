@@ -7,6 +7,7 @@
 #include "../direction.h"
 #include "../eyes.h"
 #include "../game.h"
+#include "../graphics.h"
 #include "../projectile.h"
 #include "../snake.h"
 #include "../state.h"
@@ -17,7 +18,11 @@
 #include "../../res/level2_clouds/clouds_tilemap.h"
 #include "../../res/level2_clouds/clouds_tileset.h"
 
-const uint8_t clouds_snake_tile_offset[16] = {0, 16, 32, 48, 16, 0, 0, 16, 0, 0, 0, 16, 0, 0, 16, 0};
+const uint8_t clouds_snake_tile_offset[16] = {
+    GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_3,
+    GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_1,
+    GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_1,
+    GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_0};
 
 Trigger trig_clouds;
 

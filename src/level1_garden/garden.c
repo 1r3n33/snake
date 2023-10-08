@@ -11,6 +11,7 @@
 #include "../direction.h"
 #include "../eyes.h"
 #include "../game.h"
+#include "../graphics.h"
 #include "../projectile.h"
 #include "../snake.h"
 #include "../state.h"
@@ -23,9 +24,9 @@
 #include "../../res/level1_garden/gfx_sprites.h"
 
 const uint8_t garden_snake_tile_offset[128] = {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x30, 0x30, 0x00, 0x00, 0x30, 0x30,
-    0x00, 0x00, 0x00, 0x00, 0x30, 0x30, 0x30, 0x30};
+    GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0,
+    GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3,
+    GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3};
 
 const uint8_t text_mole_intro[] = {
     // Hello! My name is

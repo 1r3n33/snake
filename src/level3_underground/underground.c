@@ -8,6 +8,7 @@
 #include "../direction.h"
 #include "../eyes.h"
 #include "../game.h"
+#include "../graphics.h"
 #include "../projectile.h"
 #include "../snake.h"
 #include "../state.h"
@@ -18,7 +19,11 @@
 #include "../../res/level3_underground/underground_tilemap.h"
 #include "../../res/level3_underground/underground_tileset.h"
 
-const uint8_t underground_snake_tile_offset[16] = {0, 16, 32, 48, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16};
+const uint8_t underground_snake_tile_offset[16] = {
+    GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_3,
+    GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2,
+    GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1,
+    GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1};
 
 Trigger trig_underground;
 
@@ -33,7 +38,7 @@ uint8_t fn_underground() BANKED
     }
 
     SnakeNode *head = snake_get_head();
-    if (head->x == 62 && head->y == 8)
+    if (head->x == 62U && head->y == 2U)
     {
         return TRIGGER_NEXT_TRIGGER;
     }
