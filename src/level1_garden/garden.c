@@ -3,8 +3,8 @@
 #include <gb/gb.h>
 
 #include "garden.h"
-#include "mole.h"
 
+#include "../actor.h"
 #include "../background.h"
 #include "../bonus.h"
 #include "../camera.h"
@@ -22,6 +22,9 @@
 #include "../../res/level1_garden/gfx_background.h"
 #include "../../res/level1_garden/gfx_garden.h"
 #include "../../res/level1_garden/gfx_sprites.h"
+
+#define MOLE_ACTOR_ID 0U
+#define MOLE_SPRITE_ID 12U
 
 const uint8_t garden_snake_tile_offset[128] = {
     GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0,
@@ -70,7 +73,7 @@ Trigger trig_mole_enter_hole;
 
 uint8_t fn_mole_visit() BANKED
 {
-    mole_update();
+    actor_update(MOLE_ACTOR_ID);
 
     State *state = state_get();
     if (state->ko == 1)
@@ -92,13 +95,13 @@ uint8_t fn_mole_visit() BANKED
 
 uint8_t fn_mole_begin_dialog(const char *text) BANKED
 {
-    mole_update();
+    actor_update(MOLE_ACTOR_ID);
 
     Camera *cam = camera_get();
     if (cam->cx == cam->tx && cam->cy == cam->ty)
     {
         text_show(text);
-        mole_hide();
+        actor_disable(MOLE_ACTOR_ID);
 
         SnakeNode *head = snake_get_head();
         camera_set_snake_target(head);
@@ -169,7 +172,7 @@ uint8_t fn_collect_apples() BANKED
 
     if (state->score == 5)
     {
-        mole_show();
+        actor_enable(MOLE_ACTOR_ID);
         return TRIGGER_NEXT_TRIGGER;
     }
 
@@ -211,6 +214,24 @@ void garden_init_background() BANKED
     camera_init();
 }
 
+const int8_t mole_xy_offsets[32] = {
+    0, 0, 8, 0, 16, 0, 24, 0,
+    0, 8, 8, 8, 16, 8, 24, 8,
+    0, 16, 8, 16, 16, 16, 24, 16,
+    0, 24, 8, 24, 16, 24, 24, 24};
+
+const uint8_t mole_tile_ids[16] = {
+    0U, 65U, 71U, 0U,
+    64U, 66U, 72U, 73U,
+    67U, 69U, 74U, 75U,
+    68U, 70U, 77U, 76U};
+
+const uint8_t mole_tile_props[16] = {
+    0U, 0U, 0U, 0U,
+    0U, 0U, 0U, 0U,
+    0U, 0U, 0U, 0U,
+    0U, 0U, 0U, 0U};
+
 void garden_init_sprites() BANKED
 {
     set_sprite_data(0, gfx_spritesLen, gfx_sprites);
@@ -221,7 +242,14 @@ void garden_init_sprites() BANKED
 
     projectile_init_all();
 
-    mole_init();
+    actor_reset(MOLE_ACTOR_ID);
+    actor_set_sprite_range(MOLE_ACTOR_ID, MOLE_SPRITE_ID, 16U);
+    actor_set_xy(MOLE_ACTOR_ID, 53U * 8U, 52U * 8U);
+    actor_set_xy_offsets(MOLE_ACTOR_ID, mole_xy_offsets);
+    actor_set_bounding_box(MOLE_ACTOR_ID, 0, 32, 0, 32);
+    actor_set_tile_ids(MOLE_ACTOR_ID, mole_tile_ids);
+    actor_set_tile_props(MOLE_ACTOR_ID, mole_tile_props);
+    actor_enable(MOLE_ACTOR_ID);
 }
 
 void garden_init() BANKED
