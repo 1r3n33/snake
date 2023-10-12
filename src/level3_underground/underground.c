@@ -2,6 +2,7 @@
 #include <gb/gb.h>
 #include "spider.h"
 #include "underground.h"
+#include "../actor.h"
 #include "../background.h"
 #include "../bonus.h"
 #include "../camera.h"
@@ -19,16 +20,28 @@
 #include "../../res/level3_underground/underground_tilemap.h"
 #include "../../res/level3_underground/underground_tileset.h"
 
+#define FROG_ACTOR_ID 0U
+#define FROG_SPRITE_ID 12U
+
 const uint8_t underground_snake_tile_offset[16] = {
     GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_3,
     GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2,
     GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1,
     GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1};
 
+const uint8_t text_frog_intro[] = {
+    // Croak!
+    85, 100, 97, 83, 93, 109, 0,
+    // EOF
+    0};
+
 Trigger trig_underground;
+
+uint8_t text_shown = 0;
 
 uint8_t fn_underground() BANKED
 {
+    actor_update(FROG_ACTOR_ID);
     spider_update_all();
 
     State *state = state_get();
@@ -38,6 +51,14 @@ uint8_t fn_underground() BANKED
     }
 
     SnakeNode *head = snake_get_head();
+    if (head->x < 48 && !text_shown)
+    {
+        text_show(text_frog_intro);
+        text_shown = 1;
+        actor_disable(FROG_ACTOR_ID);
+        return TRIGGER_CONTINUE;
+    }
+
     if (head->x == 62U && head->y == 2U)
     {
         return TRIGGER_NEXT_TRIGGER;
@@ -61,6 +82,24 @@ void underground_init_background() BANKED
     camera_init();
 }
 
+const int8_t frog_xy_offsets[32] = {
+    0, 0, 8, 0, 16, 0, 24, 0,
+    0, 8, 8, 8, 16, 8, 24, 8,
+    0, 16, 8, 16, 16, 16, 24, 16,
+    0, 24, 8, 24, 16, 24, 24, 24};
+
+const uint8_t frog_tile_ids[16] = {
+    80U, 82U, 82U, 80U,
+    81U, 83U, 83U, 81U,
+    84U, 86U, 86U, 84U,
+    85U, 87U, 87U, 85U};
+
+const uint8_t frog_tile_props[16] = {
+    0U, 0U, S_FLIPX, S_FLIPX,
+    0U, 0U, S_FLIPX, S_FLIPX,
+    0U, 0U, S_FLIPX, S_FLIPX,
+    0U, 0U, S_FLIPX, S_FLIPX};
+
 void underground_init_sprites() BANKED
 {
     // set_sprite_data(0, gfx_spritesLen, gfx_sprites);
@@ -73,6 +112,15 @@ void underground_init_sprites() BANKED
 
     spider_init_all();
     spider_spawn(30U, 80U);
+
+    actor_reset(FROG_ACTOR_ID);
+    actor_set_sprite_range(FROG_ACTOR_ID, FROG_SPRITE_ID, 16U);
+    actor_set_xy(FROG_ACTOR_ID, 324U, 436U);
+    actor_set_xy_offsets(FROG_ACTOR_ID, frog_xy_offsets);
+    actor_set_bounding_box(FROG_ACTOR_ID, 0, 32, 0, 32);
+    actor_set_tile_ids(FROG_ACTOR_ID, frog_tile_ids);
+    actor_set_tile_props(FROG_ACTOR_ID, frog_tile_props);
+    actor_enable(FROG_ACTOR_ID);
 }
 
 void underground_init() BANKED
