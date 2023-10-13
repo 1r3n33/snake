@@ -20,6 +20,8 @@
 #include "../../res/level3_underground/underground_tilemap.h"
 #include "../../res/level3_underground/underground_tileset.h"
 
+#include "../../res/level3_underground/frog_intro.inc"
+
 #define FROG_ACTOR_ID 0U
 #define FROG_SPRITE_ID 12U
 
@@ -28,12 +30,6 @@ const uint8_t underground_snake_tile_offset[16] = {
     GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2,
     GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1,
     GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_1};
-
-const uint8_t text_frog_intro[] = {
-    // Croak!
-    85, 100, 97, 83, 93, 109, 0,
-    // EOF
-    0};
 
 Trigger trig_underground;
 

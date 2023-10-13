@@ -23,6 +23,9 @@
 #include "../../res/level1_garden/gfx_garden.h"
 #include "../../res/level1_garden/gfx_sprites.h"
 
+#include "../../res/level1_garden/mole_intro.inc"
+#include "../../res/level1_garden/mole_pass.inc"
+
 #define MOLE_ACTOR_ID 0U
 #define MOLE_SPRITE_ID 12U
 
@@ -30,36 +33,6 @@ const uint8_t garden_snake_tile_offset[128] = {
     GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0,
     GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3,
     GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3, GFX_SNAKE_OFFSET_3};
-
-const uint8_t text_mole_intro[] = {
-    // Hello! My name is
-    90, 87, 94, 94, 97, 109, 82, 95, 107, 82, 96, 83, 95, 87, 82, 91, 101, 0,
-    // Molly...
-    95, 97, 94, 94, 107, 110, 110, 110, 0,
-    // If you bring me
-    91, 88, 82, 107, 97, 103, 82, 84, 100, 91, 96, 89, 82, 95, 87, 0,
-    // 5 apples...
-    77, 82, 83, 98, 98, 94, 87, 101, 110, 110, 110, 0,
-    // I'll show you
-    91, 111, 94, 94, 82, 101, 90, 97, 105, 82, 107, 97, 103, 0,
-    // the exit!
-    102, 90, 87, 82, 87, 106, 91, 102, 109, 0,
-    // Good luck!
-    89, 97, 97, 86, 82, 94, 103, 85, 93, 109, 0,
-    // EOF
-    0};
-
-const uint8_t text_mole_pass[] = {
-    // Hey! Thank you
-    90, 87, 107, 109, 82, 102, 90, 83, 96, 93, 82, 107, 97, 103, 0,
-    // so much...
-    101, 97, 82, 95, 103, 85, 90, 110, 110, 110, 0,
-    // Follow me
-    88, 97, 94, 94, 97, 105, 82, 95, 87, 0,
-    // underground!
-    103, 96, 86, 87, 100, 89, 100, 97, 103, 96, 86, 109, 0,
-    // EOF
-    0};
 
 // Meet with the mole, to activate apples collection.
 Trigger trig_mole_visit_1;
