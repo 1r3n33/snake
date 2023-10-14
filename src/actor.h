@@ -31,6 +31,9 @@ void actor_set_tile_ids(uint8_t id, uint8_t *ids);
 // Applied immediately to OAM mirror.
 void actor_set_tile_props(uint8_t id, uint8_t *props);
 
+// Hide actor's sprites (keep actor's state).
+void actor_hide(uint8_t id);
+
 void actor_update(uint8_t id);
 void actor_enable(uint8_t id);
 void actor_disable(uint8_t id);
