@@ -43,4 +43,10 @@
 #define GFX_SNAKE_OFFSET_2 48U
 #define GFX_SNAKE_OFFSET_3 72U
 
+// Temporary hack to load sprites (all sprites are currently in bank 2).
+// In the caller context, we may already have switched to the caller bank.
+// We need to push/pop bank 2 to load the sprites.
+// This code must be located in bank 0.
+void gfx_load_sprites();
+
 #endif // GRAPHICS_H

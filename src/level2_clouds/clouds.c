@@ -59,7 +59,7 @@ void clouds_init_background() BANKED
 
 void clouds_init_sprites() BANKED
 {
-    // set_sprite_data(0, gfx_spritesLen, gfx_sprites);
+    gfx_load_sprites();
 
     eyes_init();
 
