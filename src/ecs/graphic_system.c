@@ -27,7 +27,7 @@ void gfx_sys_process()
             uint16_t gfx_top = gfx->y + gfx->bb[2U];
             uint16_t gfx_bottom = gfx->y + gfx->bb[3U];
 
-            if (gfx_left < cam_right && gfx_right > cam_left && gfx_top < cam_bottom && gfx_bottom > cam_top)
+            if (gfx_left <= cam_right && gfx_right >= cam_left && gfx_top <= cam_bottom && gfx_bottom >= cam_top)
             {
                 uint8_t x = DEVICE_SPRITE_PX_OFFSET_X + gfx_left - (cam->sx % 256U);
                 uint8_t y = DEVICE_SPRITE_PX_OFFSET_Y + gfx_top - (cam->sy % 256U);

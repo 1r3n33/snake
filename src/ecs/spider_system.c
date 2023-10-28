@@ -40,7 +40,7 @@ void spd_sys_process()
         SpiderComponent *spd = spd_components + i;
         if (spd->enabled)
         {
-            if (spd->zone.l < cam_right && spd->zone.r > cam_left && spd->zone.t < cam_bottom && spd->zone.b > cam_top)
+            if (spd->zone.l <= cam_right && spd->zone.r >= cam_left && spd->zone.t <= cam_bottom && spd->zone.b >= cam_top)
             {
                 gfx_enable(spd_sys.gfx);
                 gfx_set_xy(spd_sys.gfx, (uint16_t)spd->zone.l * 8U, (uint16_t)spd->zone.t * 8U);
