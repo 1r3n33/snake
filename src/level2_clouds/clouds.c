@@ -8,12 +8,15 @@
 #include "../eyes.h"
 #include "../game.h"
 #include "../graphics.h"
-#include "../projectile.h"
 #include "../snake.h"
 #include "../state.h"
 #include "../text.h"
 #include "../tiles_copy.h"
 #include "../trigger.h"
+
+#include "../ecs/collision_system.h"
+#include "../ecs/graphic_system.h"
+#include "../ecs/projectile_system.h"
 
 #include "../../res/level2_clouds/clouds_tilemap.h"
 #include "../../res/level2_clouds/clouds_tileset.h"
@@ -65,7 +68,9 @@ void clouds_init_sprites() BANKED
 
     bonus_init();
 
-    projectile_init_all();
+    gfx_sys_init();
+    col_sys_init();
+    proj_sys_init(NULL, NULL);
 }
 
 void clouds_init() BANKED

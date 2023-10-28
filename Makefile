@@ -3,14 +3,16 @@
 # subdirectories and places the output in a "obj" subdirectory
 #
 
-# You can set the name of the .gb ROM file here
+# .gb ROM file
 PROJECTNAME = Snake
-
-SRCDIR      = src
 OBJDIR      = obj
+BIN         = $(OBJDIR)/$(PROJECTNAME).gb
+
+# Bank 0
+SRCDIR      = src
+ECSDIR      = $(SRCDIR)/ecs
 RESDIR      = res
-BINS        = $(OBJDIR)/$(PROJECTNAME).gb
-CSOURCES    = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(RESDIR),$(notdir $(wildcard $(dir)/*.c)))
+CSOURCES    = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(ECSDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(RESDIR),$(notdir $(wildcard $(dir)/*.c)))
 ASMSOURCES  = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.s)))
 OBJS        = $(CSOURCES:%.c=$(OBJDIR)/%.o) $(ASMSOURCES:%.s=$(OBJDIR)/%.o) ext/hUGEDriver/obj/hUGEDriver.o
 
@@ -48,12 +50,20 @@ BANK4_TXT_INCLUDES := $(BANK4_TXT_SOURCES:%.txt=$(BANK4_RESDIR)/%.inc)
 
 # Compiler
 LCC = $(GBDK_HOME)/bin/lcc
-LCCFLAGS += -v -debug -Wf--opt-code-speed -Wf--max-allocs-per-node300000 -Wf--verbose -Wf--Werror -Wl-m
+LCCFLAGS += -v -Wf--verbose -Wf--Werror -Wl-m
 
-all: prepare texts $(BINS)
+all: LCCFLAGS += -Wf--opt-code-speed -Wf--max-allocs-per-node500000
+all: prepare texts $(BIN)
 
-# Compile .c files in "src/" to .o object files
+debug: LCCFLAGS += -debug -DDEBUG -Wf--opt-code-size -Wf--max-allocs-per-node8000
+debug: prepare texts $(BIN)
+
+# Bank 0
+
+# Compile .c files to .o object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(LCC) $(LCCFLAGS) -c -o $@ $<
+$(OBJDIR)/%.o: $(ECSDIR)/%.c
 	$(LCC) $(LCCFLAGS) -c -o $@ $<
 
 # Compile .c files in "res/" to .o object files
@@ -68,8 +78,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.s
 # (not required if .c is compiled directly to .o)
 $(OBJDIR)/%.s: $(SRCDIR)/%.c
 	$(LCC) $(LCCFLAGS) -S -o $@ $<
-
-# Bank 0
 
 # Bank 1
 $(OBJDIR)/%.o: $(BANK1_SRCDIR)/%.c
@@ -107,7 +115,7 @@ $(BANK4_RESDIR)/%.inc: $(BANK4_RESDIR)/%.txt
 	python3 tools/gentxt.py $< > $@
 
 # Link the compiled object files into a .gb ROM file
-$(BINS): $(OBJS) $(BANK1_OBJS) $(BANK2_OBJS) $(BANK3_OBJS) $(BANK4_OBJS)
+$(BIN): $(OBJS) $(BANK1_OBJS) $(BANK2_OBJS) $(BANK3_OBJS) $(BANK4_OBJS)
 	$(LCC) $(LCCFLAGS) -Wl-yt0x1A -Wl-yo8 -Wl-ya4 -o $@ $(OBJS) $(BANK1_OBJS) $(BANK2_OBJS) $(BANK3_OBJS) $(BANK4_OBJS)
 
 prepare:
@@ -115,3 +123,7 @@ prepare:
 
 clean:
 	rm -f $(OBJDIR)/*.* $(BANK1_TXT_INCLUDES) $(BANK2_TXT_INCLUDES) $(BANK3_TXT_INCLUDES) $(BANK4_TXT_INCLUDES)
+
+# Debug
+print-%:
+	@echo $* = $($*)

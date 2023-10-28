@@ -5,18 +5,9 @@
 #include "direction.h"
 #include "eyes.h"
 #include "game.h"
-#include "projectile.h"
 #include "snake.h"
 #include "tiles_copy.h"
 #include "trigger.h"
-
-void action_update(uint8_t pressed)
-{
-    if (pressed & J_A)
-    {
-        projectile_spawn();
-    }
-}
 
 void vblank_update(uint8_t frame)
 {
@@ -98,12 +89,10 @@ uint8_t game_loop()
             {
                 snake_tick(frame);
             }
-            action_update(pressed);
-
             camera_move(head);
+            
             eyes_update();
             bonus_update(head);
-            projectile_update_all();
 
             res = trigger_update();
 

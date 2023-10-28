@@ -1,7 +1,7 @@
 #pragma bank 4
 #include <gb/gb.h>
+#include <string.h>
 #include "underground.h"
-#include "../actor.h"
 #include "../background.h"
 #include "../bonus.h"
 #include "../camera.h"
@@ -9,12 +9,18 @@
 #include "../eyes.h"
 #include "../game.h"
 #include "../graphics.h"
-#include "../projectile.h"
 #include "../snake.h"
 #include "../state.h"
 #include "../text.h"
 #include "../tiles_copy.h"
 #include "../trigger.h"
+
+#include "../ecs/collision_system.h"
+#include "../ecs/graphic_system.h"
+#include "../ecs/projectile_component.h"
+#include "../ecs/projectile_system.h"
+#include "../ecs/spider_component.h"
+#include "../ecs/spider_system.h"
 
 #include "../../res/level3_underground/underground_tilemap.h"
 #include "../../res/level3_underground/underground_tileset.h"
@@ -27,6 +33,24 @@
 #define SPIDER_ACTOR_ID 1U
 #define SPIDER_SPRITE_ID 32U
 
+#define PROJECTILE_ACTOR_ID 5U
+#define PROJECTILE_SPRITE_ID 28U
+
+#define PROJECTILE_COUNT 3U
+
+#define FROG_GFX_COUNT 1U
+#define SPIDER_GFX_COUNT 1U
+#define PROJECTILE_GFX_COUNT PROJECTILE_COUNT
+
+GraphicComponent *frog_gfx = gfx_components + 0U;
+GraphicComponent *spider_gfx = gfx_components + FROG_GFX_COUNT;
+GraphicComponent *projectiles_gfx = gfx_components + FROG_GFX_COUNT + SPIDER_GFX_COUNT;
+
+#define SPIDER_COL_COUNT 1U
+#define PROJECTILE_COL_COUNT PROJECTILE_COUNT
+CollisionComponent *spider_col = col_collidees + 0U;
+CollisionComponent *projectiles_col = col_colliders + 0U;
+
 const uint8_t underground_snake_tile_offset[16] = {
     GFX_SNAKE_OFFSET_0, GFX_SNAKE_OFFSET_1, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_3,
     GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2, GFX_SNAKE_OFFSET_2,
@@ -37,104 +61,16 @@ Trigger trig_underground;
 
 uint8_t text_shown = 0;
 
-typedef struct ActorController
-{
-    uint8_t first;   // id of the first actor (actors are in sequence)
-    uint8_t count;   // number of actors
-    uint16_t *zones; // zones (1 zone per actor, lrtb)
-    uint8_t active;  // active actor id else 0xFF
-} ActorController;
-
-ActorController spiders;
-
-const uint16_t spiders_zones[] = {
-    31U * 8U, 35U * 8U, 54U * 8U, 56U * 8U,
-    7U * 8U, 11U * 8U, 32U * 8U, 34U * 8U};
-
-const uint16_t spiders_xy[] = {
-    31U * 8U,
-    54U * 8U,
-    7U * 8U,
-    32U * 8U,
-};
-
-const int8_t spider_xy_offsets[] = {
-    0, 0, 8, 0, 16, 0, 24, 0,
-    0, 8, 8, 8, 16, 8, 24, 8};
-
-const uint8_t spider_tile_ids[] = {
-    48U, 50U, 50U, 48U,
-    49U, 51U, 51U, 49U};
-
-const uint8_t spider_tile_props[] = {
-    0U, 0U, S_FLIPX, S_FLIPX,
-    0U, 0U, S_FLIPX, S_FLIPX};
-
-void spiders_init() BANKED
-{
-    spiders.first = SPIDER_ACTOR_ID;
-    spiders.count = 2U;
-    spiders.zones = (uint16_t *)spiders_zones;
-
-    for (uint8_t i = 0U; i < spiders.count; i++)
-    {
-        actor_reset(SPIDER_ACTOR_ID + i);
-        actor_set_sprite_range(SPIDER_ACTOR_ID + i, SPIDER_SPRITE_ID, 8U);
-        actor_set_xy(SPIDER_ACTOR_ID + i, spiders_xy[i * 2], spiders_xy[i * 2 + 1]);
-        actor_set_xy_offsets(SPIDER_ACTOR_ID + i, spider_xy_offsets);
-        actor_set_bounding_box(SPIDER_ACTOR_ID + i, 0, 32, 0, 16);
-        actor_set_tile_ids(SPIDER_ACTOR_ID + i, spider_tile_ids);
-        actor_set_tile_props(SPIDER_ACTOR_ID + i, spider_tile_props);
-        actor_enable(SPIDER_ACTOR_ID + i);
-    }
-}
-
-// Update first visible spider.
-void spiders_update() BANKED
-{
-    Camera *cam = camera_get();
-    uint16_t cam_left = cam->sx;
-    uint16_t cam_right = cam_left + DEVICE_SCREEN_PX_WIDTH;
-    uint16_t cam_top = cam->sy;
-    uint16_t cam_bottom = cam_top + DEVICE_SCREEN_PX_HEIGHT;
-
-    // Find the active actor id
-    uint8_t active = 0xFFU;
-    uint16_t *p = spiders.zones;
-    for (uint8_t i = 0U; i < spiders.count; i++)
-    {
-        uint16_t zone_left = *p++;
-        uint16_t zone_right = *p++;
-        uint16_t zone_top = *p++;
-        uint16_t zone_bottom = *p++;
-        if (zone_left < cam_right && zone_right > cam_left && zone_top < cam_bottom && zone_bottom > cam_top)
-        {
-            active = spiders.first + i;
-            break;
-        }
-    }
-
-    // Swap active actor (hide previous).
-    if (active != spiders.active)
-    {
-        if (spiders.active != 0xFFU)
-        {
-            actor_hide(spiders.active);
-        }
-        spiders.active = active;
-    }
-
-    // Update active actor
-    if (spiders.active != 0xFF)
-    {
-        actor_update(spiders.active);
-    }
-}
-
 uint8_t fn_underground() BANKED
 {
-    actor_update(FROG_ACTOR_ID);
-    spiders_update();
+    // Experiencing a compiler issue with function parameter when making function pointer call.
+    // Call joypad() instead of relying on a 'pressed' function parameter.
+    uint8_t pressed = joypad();
+
+    proj_sys_process(pressed);
+    spd_sys_process();
+    col_sys_process();
+    gfx_sys_process();
 
     State *state = state_get();
     if (state->ko == 1)
@@ -147,7 +83,7 @@ uint8_t fn_underground() BANKED
     {
         text_show(text_frog_intro);
         text_shown = 1;
-        actor_disable(FROG_ACTOR_ID);
+        gfx_disable(frog_gfx);
         return TRIGGER_CONTINUE;
     }
 
@@ -192,6 +128,44 @@ const uint8_t frog_tile_props[16] = {
     0U, 0U, S_FLIPX, S_FLIPX,
     0U, 0U, S_FLIPX, S_FLIPX};
 
+const int8_t spider_xy_offsets[] = {
+    0, 0, 8, 0, 16, 0, 24, 0,
+    0, 8, 8, 8, 16, 8, 24, 8};
+
+const uint8_t spider_tile_ids[] = {
+    48U, 50U, 50U, 48U,
+    49U, 51U, 51U, 49U};
+
+const uint8_t spider_tile_props[] = {
+    0U, 0U, S_FLIPX, S_FLIPX,
+    0U, 0U, S_FLIPX, S_FLIPX};
+
+const uint8_t projectile_xy_offsets[] = {
+    0U, 0U};
+
+void on_proj_col() BANKED
+{
+    uint8_t id = col_sys_get_data();
+    ProjectileComponent *proj = proj_components + id;
+    proj->enabled = 0U;
+
+    col_sys_bkg_collider_disable(id);
+    col_sys_c2c_collider_disable(id);
+
+    GraphicComponent *gfx = projectiles_gfx + id;
+    gfx_disable(gfx);
+}
+
+void on_spd_col() BANKED
+{
+    uint8_t id = col_sys_get_data();
+    SpiderComponent *spd = spd_components + id;
+    spd->enabled = 0U;
+
+    gfx_disable(spider_gfx);
+    col_sys_c2c_collidee_disable(0); // spider col is id 0
+}
+
 void underground_init_sprites() BANKED
 {
     gfx_load_sprites();
@@ -200,18 +174,63 @@ void underground_init_sprites() BANKED
 
     bonus_init();
 
-    projectile_init_all();
+    proj_sys_init(projectiles_gfx, projectiles_col);
+    spd_sys_init(spider_gfx, spider_col);
+    gfx_sys_init();
+    col_sys_init();
 
-    actor_reset(FROG_ACTOR_ID);
-    actor_set_sprite_range(FROG_ACTOR_ID, FROG_SPRITE_ID, 16U);
-    actor_set_xy(FROG_ACTOR_ID, 324U, 436U);
-    actor_set_xy_offsets(FROG_ACTOR_ID, frog_xy_offsets);
-    actor_set_bounding_box(FROG_ACTOR_ID, 0, 32, 0, 32);
-    actor_set_tile_ids(FROG_ACTOR_ID, frog_tile_ids);
-    actor_set_tile_props(FROG_ACTOR_ID, frog_tile_props);
-    actor_enable(FROG_ACTOR_ID);
+    // Frog
+    gfx_set_sprite_range(frog_gfx, FROG_SPRITE_ID, 16U);
+    gfx_set_xy(frog_gfx, 324U, 436U);
+    gfx_set_xy_offsets(frog_gfx, (uint8_t *)frog_xy_offsets);
+    gfx_set_bounding_box(frog_gfx, 0, 32, 0, 32);
+    gfx_set_tile_ids(frog_gfx, frog_tile_ids);
+    gfx_set_tile_props(frog_gfx, frog_tile_props);
+    gfx_enable(frog_gfx);
 
-    spiders_init();
+    // Spiders
+    spd_components[0].enabled = 1U;
+    spd_components[0].zone.l = 31U;
+    spd_components[0].zone.r = 35U;
+    spd_components[0].zone.t = 54U;
+    spd_components[0].zone.b = 56U;
+
+    spd_components[1].enabled = 1U;
+    spd_components[1].zone.l = 7U;
+    spd_components[1].zone.r = 11U;
+    spd_components[1].zone.t = 32U;
+    spd_components[1].zone.b = 34U;
+
+    spider_col->on_c2c_col_cb = on_spd_col;
+
+    gfx_set_sprite_range(spider_gfx, SPIDER_SPRITE_ID, 8U);
+    gfx_set_xy_offsets(spider_gfx, (uint8_t *)spider_xy_offsets);
+    gfx_set_bounding_box(spider_gfx, 0, 32, 0, 16);
+    gfx_set_tile_ids(spider_gfx, spider_tile_ids);
+    gfx_set_tile_props(spider_gfx, spider_tile_props);
+    gfx_enable(spider_gfx);
+
+    // Projectiles
+    for (uint8_t i = 0U; i < PROJECTILE_COUNT; i++)
+    {
+        ProjectileComponent *proj = proj_components + i;
+        proj->enabled = 0U;
+
+        GraphicComponent *gfx = projectiles_gfx + i;
+        gfx_set_sprite_range(gfx, PROJECTILE_SPRITE_ID + i, 1U);
+        gfx_set_xy_offsets(gfx, (uint8_t *)projectile_xy_offsets);
+        gfx_set_bounding_box(gfx, 0, 8, 0, 8);
+        gfx_disable(gfx);
+
+        CollisionComponent *col = projectiles_col + i;
+        col->data = i;
+        col->on_bkg_col_cb = on_proj_col;
+        col->on_c2c_col_cb = on_proj_col;
+        col_sys_c2c_collider_candidates(i, 0x1U); // pair proj col with spider col
+    }
+
+    // Process gfx once to position components properly.
+    gfx_sys_process();
 }
 
 void underground_init() BANKED

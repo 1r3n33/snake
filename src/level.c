@@ -37,5 +37,9 @@ Level *level_init()
     clouds.prev = &underground;
     clouds.next = &titlescreen;
 
+#ifdef DEBUG
+    return &underground;
+#else
     return &titlescreen;
+#endif
 }

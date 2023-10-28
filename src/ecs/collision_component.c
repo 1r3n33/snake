@@ -1,0 +1,4 @@
+#include "collision_component.h"
+
+CollisionComponent col_colliders[COLLISION_COMPONENT_MAX_COLLIDER_COUNT];
+CollisionComponent col_collidees[COLLISION_COMPONENT_MAX_COLLIDEE_COUNT];
