@@ -32,28 +32,11 @@ void gfx_sys_process()
                 uint8_t x = DEVICE_SPRITE_PX_OFFSET_X + gfx_left - (cam->sx % 256U);
                 uint8_t y = DEVICE_SPRITE_PX_OFFSET_Y + gfx_top - (cam->sy % 256U);
 
-                uint8_t i = gfx->id;
-                uint8_t c = gfx->count;
-                int8_t *p = gfx->xy_offsets;
-                while (c)
-                {
-                    uint8_t tx = x + *p++;
-                    uint8_t ty = y + *p++;
-                    move_sprite(i, tx, ty);
-                    c--;
-                    i++;
-                }
+                gfx_show(gfx, x, y);
             }
             else
             {
-                uint8_t i = gfx->id;
-                uint8_t c = gfx->count;
-                while (c)
-                {
-                    move_sprite(i, 0U, 0U);
-                    c--;
-                    i++;
-                }
+                gfx_hide(gfx);
             }
         }
     }

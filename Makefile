@@ -13,8 +13,8 @@ SRCDIR      = src
 ECSDIR      = $(SRCDIR)/ecs
 RESDIR      = res
 CSOURCES    = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(ECSDIR),$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(RESDIR),$(notdir $(wildcard $(dir)/*.c)))
-ASMSOURCES  = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.s)))
-OBJS        = $(CSOURCES:%.c=$(OBJDIR)/%.o) $(ASMSOURCES:%.s=$(OBJDIR)/%.o) ext/hUGEDriver/obj/hUGEDriver.o
+ASMSOURCES  = $(foreach dir,$(SRCDIR),$(notdir $(wildcard $(dir)/*.s))) $(foreach dir,$(ECSDIR),$(notdir $(wildcard $(dir)/*.s)))
+OBJS        = $(CSOURCES:%.c=$(OBJDIR)/%.o) $(ASMSOURCES:%.s=$(OBJDIR)/%_asm.o) ext/hUGEDriver/obj/hUGEDriver.o
 
 # Bank 1: Titlescreen
 BANK1_SRCDIR       := $(SRCDIR)/titlescreen
@@ -64,6 +64,8 @@ debug: prepare texts $(BIN)
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(LCC) $(LCCFLAGS) -c -o $@ $<
 $(OBJDIR)/%.o: $(ECSDIR)/%.c
+	$(LCC) $(LCCFLAGS) -c -o $@ $<
+$(OBJDIR)/%_asm.o: $(ECSDIR)/%.s
 	$(LCC) $(LCCFLAGS) -c -o $@ $<
 
 # Compile .c files in "res/" to .o object files

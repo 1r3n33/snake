@@ -110,11 +110,11 @@ void underground_init_background() BANKED
     camera_init();
 }
 
-const int8_t frog_xy_offsets[32] = {
-    0, 0, 8, 0, 16, 0, 24, 0,
-    0, 8, 8, 8, 16, 8, 24, 8,
-    0, 16, 8, 16, 16, 16, 24, 16,
-    0, 24, 8, 24, 16, 24, 24, 24};
+const int8_t frog_yx_offsets[32] = {
+    0, 0, 0, 8, 0, 16, 0, 24,
+    8, 0, 8, 8, 8, 16, 8, 24,
+    16, 0, 16, 8, 16, 16, 16, 24,
+    24, 0, 24, 8, 24, 16, 24, 24};
 
 const uint8_t frog_tile_ids[16] = {
     80U, 82U, 82U, 80U,
@@ -128,9 +128,9 @@ const uint8_t frog_tile_props[16] = {
     0U, 0U, S_FLIPX, S_FLIPX,
     0U, 0U, S_FLIPX, S_FLIPX};
 
-const int8_t spider_xy_offsets[] = {
-    0, 0, 8, 0, 16, 0, 24, 0,
-    0, 8, 8, 8, 16, 8, 24, 8};
+const int8_t spider_yx_offsets[] = {
+    0, 0, 0, 8, 0, 16, 0, 24,
+    8, 0, 8, 8, 8, 16, 8, 24};
 
 const uint8_t spider_tile_ids[] = {
     48U, 50U, 50U, 48U,
@@ -140,7 +140,7 @@ const uint8_t spider_tile_props[] = {
     0U, 0U, S_FLIPX, S_FLIPX,
     0U, 0U, S_FLIPX, S_FLIPX};
 
-const uint8_t projectile_xy_offsets[] = {
+const uint8_t projectile_yx_offsets[] = {
     0U, 0U};
 
 void on_proj_col() BANKED
@@ -182,7 +182,7 @@ void underground_init_sprites() BANKED
     // Frog
     gfx_set_sprite_range(frog_gfx, FROG_SPRITE_ID, 16U);
     gfx_set_xy(frog_gfx, 324U, 436U);
-    gfx_set_xy_offsets(frog_gfx, (uint8_t *)frog_xy_offsets);
+    gfx_set_yx_offsets(frog_gfx, (uint8_t *)frog_yx_offsets);
     gfx_set_bounding_box(frog_gfx, 0, 32, 0, 32);
     gfx_set_tile_ids(frog_gfx, frog_tile_ids);
     gfx_set_tile_props(frog_gfx, frog_tile_props);
@@ -204,7 +204,7 @@ void underground_init_sprites() BANKED
     spider_col->on_c2c_col_cb = on_spd_col;
 
     gfx_set_sprite_range(spider_gfx, SPIDER_SPRITE_ID, 8U);
-    gfx_set_xy_offsets(spider_gfx, (uint8_t *)spider_xy_offsets);
+    gfx_set_yx_offsets(spider_gfx, (uint8_t *)spider_yx_offsets);
     gfx_set_bounding_box(spider_gfx, 0, 32, 0, 16);
     gfx_set_tile_ids(spider_gfx, spider_tile_ids);
     gfx_set_tile_props(spider_gfx, spider_tile_props);
@@ -218,7 +218,7 @@ void underground_init_sprites() BANKED
 
         GraphicComponent *gfx = projectiles_gfx + i;
         gfx_set_sprite_range(gfx, PROJECTILE_SPRITE_ID + i, 1U);
-        gfx_set_xy_offsets(gfx, (uint8_t *)projectile_xy_offsets);
+        gfx_set_yx_offsets(gfx, (uint8_t *)projectile_yx_offsets);
         gfx_set_bounding_box(gfx, 0, 8, 0, 8);
         gfx_disable(gfx);
 
