@@ -1,5 +1,6 @@
 ;
 ; void gfx_show(GraphicComponent *gfx, uint8_t x, uint8_t y)
+; TODO: Prolog can be optimized further by reordering member in GfxComponent. Probably can save a push/pop.
 ;
 _gfx_show::
     ; Collect x & y
@@ -10,86 +11,70 @@ _gfx_show::
     push bc ; xy, saved for later (sp+6)
 
     ; Get the requested OAM
-    ld h, d
-    ld l, e ; hl points to gfx
-    ld b, #0
-    ld c, #6 ; bc contains 6, offset to id
-    add hl, bc ; hl points to gfx->id
+    ld h, #0
+    ld l, #6 ; hl contains 6, offset to id
+    add hl, de ; hl points to gfx->id
     ld a, (hl) ; a contains gfx->id
-    ld hl, #_shadow_OAM ; hl points to oam table
     rla ; since sizeof(oam) is 4, multiply by 2 twice
     rla ;
-    ld c, a ; bc contains offset to requested oam id
-    add hl, bc ; hl points to requested oam
+    ld h, #0xC0 ; shadow_OAM
+    ld l, a ; hl contains offset to requested oam id
     push hl ; requested oam address, save for later (sp+4)
 
     ; Get the YX offset address
-    ld h, d
-    ld l, e ; hl points to gfx
-    ld b, #0
-    ld c, #8 ; bc contains 8, offset to gfx->yx_offsets
-    add hl, bc ; hl points to gfx->yx_offsets
+    ld h, #0
+    ld l, #8 ; h contains 8, offset to gfx->yx_offsets
+    add hl, de ; hl points to gfx->yx_offsets
     ld a, (hl+)
     ld b, (hl)
     ld c, a ; bc points to data
     push bc ; save for later (sp+2)
 
     ; Get count (number of oam to update)
-    ld h, d
-    ld l, e ; hl points to gfx
-    ld b, #0
-    ld c, #7 ; bc contains 7, offset to gfx->count
-    add hl, bc ; hl points to gfx->count
+    ld h, #0
+    ld l, #7 ; hl contains 7, offset to gfx->count
+    add hl, de ; hl points to gfx->count
     ld a, (hl) ; a contains gfx->count
-    push af ; save for later (sp+0)
-    
+    or a,a ; set z flag
+
     ; Restore
-    ; x & y in bc
-    ldhl sp, #6
-    ld a, (hl+)
-    ld b, (hl)
-    ld c, a
-    ; oam pointer in de 
-    ldhl sp, #4
-    ld a, (hl+)
-    ld d, (hl)
-    ld e, a
     ; yx offset pointer in hl
-    ldhl sp, #2
-    ld a, (hl+)
-    ld h, (hl)
-    ld l, a
+    pop hl
+    ; oam pointer in de
+    pop de
+    ; x & y in bc
+    pop bc
+
+    jr z, show_loop_end
 
     ; Update x & y for each oam
 show_loop_begin:
-    pop af ; load oam count
-    or a,a
-    jr z, show_loop_end ; loop until oam count reaches zero
-    dec a
+    dec a ; set z flag
     push af ; store new oam count
-    
+
+    ; it's ok to increment e only (instead of de)
+    ; because oam buffer if 256-byte aligned and less than 256 bytes in size.
+
     ; y coord
     ld a, (hl+) ; a=*yx_offset++, (y)
     add a, c    ; a+=y
     ld (de), a  ; oam=a, (y)
-    inc de      ; oam++
+    inc e       ; oam++
     
     ; x coord
     ld a, (hl+) ; a=*yx_offset++, (x)
     add a, b    ; a+=x
     ld (de), a  ; oam=a, (x)
 
-    inc de ; next oam, sizeof(oam) is 4
-    inc de
-    inc de
+    inc e ; next oam, sizeof(oam) is 4
+    inc e
+    inc e
 
-    jp show_loop_begin
+    pop af ; load oam count
+    jr nz, show_loop_begin
 
 show_loop_end:
-    ; clean
-    pop hl
-    pop hl
-    pop hl
+
     ; function epilog (per calling convention)
     pop hl
     inc sp
@@ -99,30 +84,39 @@ show_loop_end:
 ; void gfx_hide(GraphicComponent *gfx)
 ;
 _gfx_hide::
-    ld h, d
-    ld l, e ; hl points to gfx
-    ld b, #0
-    ld c, #6 ; bc contains 6, offset to gfx->id
-    add hl, bc ; hl points to gfx->id
-    ld a, (hl+) ; a contains gfx->id, hl points to gfx->count
+    ld h, #0
+    ld l, #6 ; hl contains 6, offset to gfx->id
+    ld b, h
+    add hl, de ; hl points to gfx->id
 
+    ld a, (hl+) ; a contains gfx->id, hl points to gfx->count
     ld d, (hl) ; d contains gfx->count
-    ld hl, #_shadow_OAM ; hl points to oam table
+
     rla ; since sizeof(oam) is 4, multiply by 2 twice
     rla
-    ld c, a ; bc contains offset to requested oam id
-    add hl, bc ; hl points to requested oam->y
 
-    ld c, #4 ; bc contains sizeof oam
-    xor a, a ; a contains zero
+    ld h, #0xC0 ; shadow_OAM
+    ld l, a ; de points to requested oam->y
+
+    ld c, #4 ; bc contains 4 (sizeof(oam))
+
+    ld a, d
+    ; TODO: Do we really need to check for zero here?
+    or a, a ; set z flag
+    ret z
+
+    ; At this point
+    ; a contains count
+    ; b contains 0
+    ; c contains 4
+    ; hl is dest
+    ; z flag is set
 
 hide_loop_begin:
-    cp a, d
-    jp z, hide_loop_end ; loop until d reaches zero
-    ld (hl), a ; oam->y=0
+    ld (hl), b ; oam->y=0
     add hl, bc ; next oam
-    dec d ; d--
-    jp hide_loop_begin ; end loop
+    dec a ; set z flag
+    jr nz, hide_loop_begin
 
 hide_loop_end:
     ret
