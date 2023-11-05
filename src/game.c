@@ -9,14 +9,31 @@
 #include "tiles_copy.h"
 #include "trigger.h"
 
-void vblank_update(uint8_t frame)
+void vblank_wait_in()
 {
     // Used as a frame start marker.
     __asm__("halt");
 
     // Wait for VBLANK to get access to the VRAM.
-    while ((STAT_REG & 3) != 1)
+    while (((volatile uint8_t)STAT_REG & (uint8_t)3U) != (uint8_t)1U)
         ;
+}
+
+void vblank_wait_out()
+{
+#if 1
+    // Wait for VBLANK to end.
+    // TODO: Remove this wait? Can't find it in the profiler but hit with with a breakpoint...
+    // This wait has no real purpose. It can be desirable to start the new frame ASAP.
+    // This could help with heavy frames 0 and 8 that update the snake tiles.
+    while (((volatile uint8_t)STAT_REG & (uint8_t)3U) == (uint8_t)1U)
+        ;
+#endif
+}
+
+void vblank_update(uint8_t frame)
+{
+    vblank_wait_in();
 
     tc_apply_snake();
 
@@ -30,9 +47,7 @@ void vblank_update(uint8_t frame)
     }
     camera_apply();
 
-    // Wait for VBLANK to end.
-    while ((STAT_REG & 3) == 1)
-        ;
+    vblank_wait_out();
 }
 
 uint8_t game_loop()
@@ -90,7 +105,7 @@ uint8_t game_loop()
                 snake_tick(frame);
             }
             camera_move(head);
-            
+
             eyes_update();
             bonus_update(head);
 
