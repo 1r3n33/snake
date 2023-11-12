@@ -12,7 +12,7 @@ typedef struct CollisionComponent
 } CollisionComponent;
 
 #define COLLISION_COMPONENT_MAX_COLLIDER_COUNT 4U
-#define COLLISION_COMPONENT_MAX_COLLIDEE_COUNT 4U
+#define COLLISION_COMPONENT_MAX_COLLIDEE_COUNT 5U
 
 extern CollisionComponent col_colliders[COLLISION_COMPONENT_MAX_COLLIDER_COUNT];
 extern CollisionComponent col_collidees[COLLISION_COMPONENT_MAX_COLLIDEE_COUNT];

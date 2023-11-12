@@ -48,7 +48,7 @@ uint8_t background_get_snake_tile_offset(uint16_t offset)
 // TODO: Factorize with background_peek_2x2
 uint8_t background_check_collision(SnakeNode *head)
 {
-#if 0
+#if DEBUG && 0
     (void)head;
     return 0;
 #else

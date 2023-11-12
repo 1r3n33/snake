@@ -104,7 +104,9 @@ void col_sys_process()
                 check_collision(col, col_collidees + 2U);
             if (mask & 0x08U)
                 check_collision(col, col_collidees + 3U);
-#if COLLISION_COMPONENT_MAX_COLLIDEE_COUNT > 4
+            if (mask & 0x10U)
+                check_collision(col, col_collidees + 4U);
+#if COLLISION_COMPONENT_MAX_COLLIDEE_COUNT > 5
 #error Update component to component collision check
 #endif
         }

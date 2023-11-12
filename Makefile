@@ -55,7 +55,7 @@ LCCFLAGS += -v -Wf--verbose -Wf--Werror -Wl-m
 all: LCCFLAGS += -Wf--opt-code-speed -Wf--max-allocs-per-node500000
 all: prepare texts $(BIN)
 
-debug: LCCFLAGS += -debug -DDEBUG -Wf--opt-code-size -Wf--max-allocs-per-node8000
+debug: LCCFLAGS += -debug -DDEBUG -Wf--opt-code-size -Wf--max-allocs-per-node4000
 debug: prepare texts $(BIN)
 
 # Bank 0

@@ -1,10 +1,10 @@
+#pragma bank 4
 #include <string.h>
 #include "spider_component.h"
 #include "spider_system.h"
-#include "collision_system.h" // TODO: Not great to have a dependency on the other system!
+#include "../ecs/collision_system.h" // TODO: Not great to have a dependency on the other system!
 #include "../camera.h"
 
-// TODO: Could move to the same bank as underground.
 // TODO: Add comments to explain shared gfx & col principles.
 
 typedef struct SpiderSystem
@@ -20,14 +20,14 @@ SpiderSystem spd_sys;
 #define ZONE_TO_COL_OFFSET_LEFT 7U
 #define ZONE_TO_COL_OFFSET_RIGHT 7U
 
-void spd_sys_init(GraphicComponent *gfx, CollisionComponent *col)
+void spd_sys_init(GraphicComponent *gfx, CollisionComponent *col) BANKED
 {
     memset(spd_components, 0U, sizeof(spd_components));
     spd_sys.gfx = gfx;
     spd_sys.col = col;
 }
 
-void spd_sys_process()
+void spd_sys_process() BANKED
 {
     Camera *cam = camera_get();
     uint8_t cam_left = cam->sx / 8U;
